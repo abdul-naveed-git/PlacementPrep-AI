@@ -273,7 +273,7 @@ export default function LandingPage() {
 
                 {/* Features */}
                 <section className="max-w-7xl mx-auto px-8 py-20">
-                    <h2 className="text-3xl lg:text-4xl font-bold text-center mb-14" sName="text-4xl font-bold text-center mb-16">
+                    <h2 className="text-3xl lg:text-4xl font-bold text-center mb-14 sName=text-4xl font-bold text-center mb-16">
                         Powerful Features for Your Placement Journey
                     </h2>
 

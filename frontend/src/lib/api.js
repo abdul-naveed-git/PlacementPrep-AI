@@ -16,8 +16,8 @@ export async function apiRequest(endpoint, options = {}) {
     const errorData = await response.json().catch(() => ({}));
     throw new Error(
       errorData.error ||
-        errorData.message ||
-        "An error occurred during transaction",
+      errorData.message ||
+      "An error occurred during transaction",
     );
   }
 
