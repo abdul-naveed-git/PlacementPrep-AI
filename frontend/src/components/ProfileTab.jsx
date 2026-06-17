@@ -9,11 +9,17 @@ export default function ProfileTab({ user, onSaveProfile, savingProfile, profile
   const [fullName, setFullName] = useState(() => localStorage.getItem("pf_fullName") || "Arjun Verma");
   const [academicYear, setAcademicYear] = useState(() => localStorage.getItem("pf_year") || "3rd Year");
   const [department, setDepartment] = useState(() => localStorage.getItem("pf_dept") || "Computer Science Engineering");
-  const [leetcodeUsername, setLeetcodeUsername] = useState(user.leetcodeUsername || "");
-  const [selectedCompanies, setSelectedCompanies] = useState(user.targetCompanies || []);
-  const [targetRole, setTargetRole] = useState(user.targetRole || "Software Development Engineer (SDE)");
+  const [leetcodeUsername, setLeetcodeUsername] =
+    useState(user?.leetcodeUsername || "");
+
+  const [selectedCompanies, setSelectedCompanies] =
+    useState(user?.targetCompanies || []);
+
+  const [targetRole, setTargetRole] =
+    useState(user?.targetRole || "Software Development Engineer (SDE)");
   const [manualWeakness, setManualWeakness] = useState("");
-  const [weakTopics, setWeakTopics] = useState(user.weakTopics || ["Dynamic Programming", "Graphs"]);
+  const [weakTopics, setWeakTopics] =
+    useState(user?.weakTopics || ["Dynamic Programming", "Graphs"]);
 
   // Set default profile icon
   const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${fullName || "Arjun"}`;
@@ -56,14 +62,14 @@ export default function ProfileTab({ user, onSaveProfile, savingProfile, profile
 
   return (
     <div id="student_integrated_profile_view" className="space-y-6">
-      
+
       {/* Upper header segment resembling Page 8 screenshot */}
       <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-[#0c122c] border border-white/5 flex flex-col md:flex-row gap-6 items-center">
         <div className="relative">
           <div className="w-20 h-20 rounded-2xl bg-slate-950 border border-violet-500/30 flex items-center justify-center p-2.5 overflow-hidden">
-            <img 
-              src={avatarUrl} 
-              alt="Profile Avatar" 
+            <img
+              src={avatarUrl}
+              alt="Profile Avatar"
               className="w-full h-full object-cover rounded-lg"
               referrerPolicy="no-referrer"
             />
@@ -83,7 +89,7 @@ export default function ProfileTab({ user, onSaveProfile, savingProfile, profile
             <span className="text-[10px] bg-white/5 px-2.5 py-0.5 rounded text-slate-300 border border-white/5 font-bold">
               {targetRole}
             </span>
-            {user.leetcodeUsername && (
+            {user?.leetcodeUsername && (
               <span className="text-[10px] bg-slate-950 text-amber-500 px-2 py-0.5 rounded border border-amber-500/10 font-mono">
                 @{user.leetcodeUsername}
               </span>
@@ -94,7 +100,7 @@ export default function ProfileTab({ user, onSaveProfile, savingProfile, profile
 
       {/* Forms Section */}
       <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
-        
+
         {/* Academic and Core parameters */}
         <div className="p-6 rounded-xl bg-slate-900 border border-white/5 space-y-4">
           <h3 className="font-extrabold text-xs text-white uppercase tracking-wider border-b border-white/5 pb-2">
@@ -172,7 +178,7 @@ export default function ProfileTab({ user, onSaveProfile, savingProfile, profile
           </h3>
 
           <div className="space-y-4">
-            
+
             {/* Target Corporations */}
             <div>
               <label className="block text-[10px] text-slate-400 font-bold uppercase mb-1.5 flex justify-between">
@@ -187,11 +193,10 @@ export default function ProfileTab({ user, onSaveProfile, savingProfile, profile
                       key={company}
                       type="button"
                       onClick={() => handleToggleCompany(company)}
-                      className={`py-1.5 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                        isSelected
-                          ? "bg-violet-600/20 border-violet-500 text-white"
-                          : "bg-slate-950 border-white/5 text-slate-500 hover:border-slate-800"
-                      }`}
+                      className={`py-1.5 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 cursor-pointer ${isSelected
+                        ? "bg-violet-600/20 border-violet-500 text-white"
+                        : "bg-slate-950 border-white/5 text-slate-500 hover:border-slate-800"
+                        }`}
                     >
                       {company}
                     </button>
@@ -222,13 +227,13 @@ export default function ProfileTab({ user, onSaveProfile, savingProfile, profile
 
               <div className="flex flex-wrap gap-1 max-h-[85px] overflow-y-auto">
                 {weakTopics.map((topic) => (
-                  <span 
-                    key={topic} 
+                  <span
+                    key={topic}
                     className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-slate-405 border border-white/5 flex items-center gap-1 bg-slate-950 text-slate-300"
                   >
                     <span>{topic}</span>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => handleRemoveWeakness(topic)}
                       className="text-red-400 hover:text-white"
                     >
