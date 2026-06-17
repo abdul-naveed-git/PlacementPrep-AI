@@ -5,9 +5,21 @@ const DSARoadmap = require("./models/DSARoadmap");
 connectDB();
 const express = require("express");
 const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const morgan = require("morgan");
 const app = express();
 app.use(express.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  }),
+);
+app.use(morgan("tiny"));
+
+const JWT_SECRET =
+  process.env.JWT_SECRET || "prod_super_secure_secret_key_123!";
 
 app.post("/api/auth/register", async (req, res) => {
   try {
@@ -63,18 +75,26 @@ app.post("/api/auth/verify", async (req, res) => {
     await OTP.deleteOne({ email });
 
     let user = await User.findOne({ email });
+    if (user) {
+      return res
+        .status(400)
+        .json({ error: "An account with this email already exists." });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
     if (!user) {
       user = await User.create({
         email,
-        password: password,
+        password: hashedPassword,
         isVerified: true,
 
         leetcodeUsername: "",
 
         targetCompanies: [],
 
-        targetRole: "",
+        targetRole: "SDE",
 
         weakTopics: [],
       });
@@ -95,14 +115,50 @@ app.post("/api/auth/verify", async (req, res) => {
 
       await user.save();
     }
-
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
     res.json({
       user,
+      token,
     });
   } catch (err) {
     res.status(500).json({
       error: err.message,
     });
+  }
+});
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ error: "Email and password are required fields." });
+    }
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ error: "Invalid email or password credentials." });
+    }
+
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+    if (!isPasswordMatch) {
+      return res
+        .status(401)
+        .json({ error: "Invalid email or password credentials." });
+    }
+
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.json({ user, token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
