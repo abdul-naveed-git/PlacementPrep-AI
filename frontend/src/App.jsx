@@ -1,11 +1,15 @@
 import { useState } from "react";
 import "./App.css";
 import Signup from "./pages/Signup";
+import LandingPage from "./components/LandingPage";
 
 function App() {
-  const [count, setCount] = useState(0);
-
-  return <Signup />;
+  return (
+    <div>
+      <LandingPage />
+      <Signup />
+    </div>
+  );
 }
 
 export default App;
