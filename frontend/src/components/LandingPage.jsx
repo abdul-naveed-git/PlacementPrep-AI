@@ -31,17 +31,17 @@ export default function LandingPage() {
                 </div>
 
                 <div className="flex gap-4">
-                    <button
-                        className="px-6 py-3 border border-gray-700 rounded-xl hover:border-violet-500 transition"
-                    >
-                        Login
-                    </button>
+                    <Link to="/login">
+                        <button className="px-6 py-3 border border-gray-700 rounded-xl hover:border-violet-500 transition">
+                            Login
+                        </button>
+                    </Link>
 
-                    <button
-                        className="px-6 py-3 bg-violet-600 rounded-xl hover:bg-violet-700 transition"
-                    >
-                        Sign Up
-                    </button>
+                    <Link to="/signup">
+                        <button className="px-6 py-3 bg-violet-600 rounded-xl hover:bg-violet-700 transition">
+                            Sign Up
+                        </button>
+                    </Link>
                 </div>
             </nav>
 
@@ -69,14 +69,19 @@ export default function LandingPage() {
                         </p>
 
                         <div className="flex flex-wrap gap-5 mt-10">
-                            <button className="bg-violet-600 px-8 py-4 rounded-xl font-semibold hover:bg-violet-700 transition">
-                                Sign Up for Free
-                            </button>
+                            <Link to="/signup">
+                                <button className="bg-violet-600 px-8 py-4 rounded-xl font-semibold hover:bg-violet-700 transition">
+                                    Sign Up for Free
+                                </button>
+                            </Link>
 
-                            <button className="border border-gray-700 px-8 py-4 rounded-xl font-semibold hover:border-violet-500 transition">
-                                Login to Your Account
-                            </button>
+                            <Link to="/login">
+                                <button className="border border-gray-700 px-8 py-4 rounded-xl font-semibold hover:border-violet-500 transition">
+                                    Login to Your Account
+                                </button>
+                            </Link>
                         </div>
+
                         {/* Companies */}
                         <div className="mt-16">
                             <p className="text-gray-500 mb-5">

@@ -16,8 +16,14 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 
+import { useLocation } from "react-router-dom";
+
 export default function Signup({ onLoginSuccess }) {
-  const [authMode, setAuthMode] = useState("login");
+  const location = useLocation();
+
+  const [authMode, setAuthMode] = useState(
+    location.pathname === "/signup" ? "signup" : "login"
+  );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -129,9 +135,7 @@ export default function Signup({ onLoginSuccess }) {
 
         {/* LOGO */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg text-white font-extrabold text-lg">
-            <Rocket className="h-4.5 w-4.5 text-white" />
-          </div>
+          <div className="text-3xl font-bold text-violet-500">P</div>
           <span className="font-extrabold text-base tracking-tight text-white font-display">
             PlacementPilot AI
           </span>
