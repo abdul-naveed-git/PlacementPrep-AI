@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Rocket,
@@ -16,10 +17,11 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 export default function Signup({ onLoginSuccess }) {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [authMode, setAuthMode] = useState(
     location.pathname === "/signup" ? "signup" : "login"
@@ -85,7 +87,12 @@ export default function Signup({ onLoginSuccess }) {
       });
 
       localStorage.setItem("pf_fullName", "User Profile");
-      onLoginSuccess(res.user, res.token);
+
+      if (onLoginSuccess) {
+        onLoginSuccess(res.user, res.token);
+      }
+
+      navigate("/dashboard");
     } catch (err) {
       setErrorMsg(
         err.message || "Invalid validation parameters or expired OTP.",
@@ -114,7 +121,12 @@ export default function Signup({ onLoginSuccess }) {
       });
 
       localStorage.setItem("pf_fullName", res.user.fullName || "User Profile");
-      onLoginSuccess(res.user, res.token);
+
+      if (onLoginSuccess) {
+        onLoginSuccess(res.user, res.token);
+      }
+
+      navigate("/dashboard");
     } catch (err) {
       setErrorMsg(err.message || "Login authentication failed.");
     } finally {
@@ -362,6 +374,17 @@ export default function Signup({ onLoginSuccess }) {
                     </div>
                   </div>
 
+                  <div className="flex justify-end -mt-1">
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => navigate("/forgot-password")}
+                        className="text-xs font-semibold text-[#4f46e5] hover:underline cursor-pointer"
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                  </div>
                   <button
                     type="submit"
                     disabled={isLoading}
