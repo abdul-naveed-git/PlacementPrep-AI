@@ -4,8 +4,10 @@ const User = require("./models/User.js");
 const DSARoadmap = require("./models/DSARoadmap");
 connectDB();
 const express = require("express");
+const cors = require("cors");
 const app = express();
 app.use(express.json());
+app.use(cors());
 
 app.post("/api/auth/register", async (req, res) => {
   try {
@@ -42,7 +44,7 @@ app.post("/api/auth/register", async (req, res) => {
 
 app.post("/api/auth/verify", async (req, res) => {
   try {
-    const { email, otp } = req.body;
+    const { email, otp, password } = req.body;
 
     if (!email || !otp) {
       return res.status(400).json({
@@ -65,6 +67,7 @@ app.post("/api/auth/verify", async (req, res) => {
     if (!user) {
       user = await User.create({
         email,
+        password: password,
         isVerified: true,
 
         leetcodeUsername: "",
