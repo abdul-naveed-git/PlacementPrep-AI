@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 
 const DSAProblemSchema = new mongoose.Schema(
   {
+    id: String,
+
     title: String,
 
     url: String,
@@ -59,6 +61,12 @@ const DSARoadmapSchema = new mongoose.Schema(
         type: String,
       },
     ],
+
+    difficulty: {
+      type: String,
+      enum: ["Easy", "Medium", "Hard"],
+      default: "Medium",
+    },
 
     topics: [DSATopicSchema],
   },

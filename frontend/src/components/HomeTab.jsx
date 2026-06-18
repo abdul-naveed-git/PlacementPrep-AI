@@ -14,27 +14,28 @@ import {
 } from "lucide-react";
 
 export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPercent }) {
-  // Extract stats or default to match mockup 
-  const leetcodeSolved = user?.leetcodeStats?.totalSolved || 842;
-  const easySolved = user?.leetcodeStats?.easySolved || 320;
-  const mediumSolved = user?.leetcodeStats?.mediumSolved || 380;
-  const hardSolved = user?.leetcodeStats?.hardSolved || 142;
+  const leetcodeSolved = user?.leetcodeStats?.totalSolved ?? 0;
+  const easySolved = user?.leetcodeStats?.easySolved ?? 0;
+  const mediumSolved = user?.leetcodeStats?.mediumSolved ?? 0;
+  const hardSolved = user?.leetcodeStats?.hardSolved ?? 0;
 
-  const trackedCompaniesCount = Math.max(
-    user?.targetCompanies?.length || 0,
-    6
-  );
-  const trackedCompaniesList =
-    user?.targetCompanies?.length
-      ? user.targetCompanies
-      : ["Amazon", "Microsoft", "Google", "Meta", "Adobe", "Apple"];
+  const trackedCompaniesList = user?.targetCompanies || [];
+  const trackedCompaniesCount = trackedCompaniesList.length;
+  const totalRoadmapProblems = roadmap?.topics?.reduce((acc, topic) => acc + (topic.problems?.length || 0), 0) ?? 0;
+  const completedRoadmapProblems = roadmap?.topics?.reduce(
+    (acc, topic) => acc + (topic.problems?.filter((problem) => problem.completed).length || 0),
+    0,
+  ) ?? 0;
+  const roadmapProgressPercent =
+    totalRoadmapProblems > 0
+      ? Math.round((completedRoadmapProblems / totalRoadmapProblems) * 100)
+      : 0;
 
-  // Weak focus progress matches mockup exactly
-  const weakFocusProgress = [
-    { topic: "Dynamic Programming", rate: 25, color: "bg-red-500" },
-    { topic: "Graphs", rate: 30, color: "bg-red-500" },
-    { topic: "System Design", rate: 20, color: "bg-red-500" }
-  ];
+  const weakFocusProgress = (user?.weakTopics || []).map((topic) => ({
+    topic,
+    rate: 0,
+    color: "bg-red-500",
+  }));
 
   return (
     <div id="home_dashboard_welcome_view" className="space-y-6">
@@ -74,7 +75,9 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
           <div className="space-y-1">
             <span className="text-3xl font-sans font-black text-slate-900 block leading-none">{trackedCompaniesCount}</span>
             <p className="text-[10px] text-slate-400 font-mono pt-1.5 truncate">
-              {trackedCompaniesList.slice(0, 3).join(", ")} +{trackedCompaniesCount - 3}
+              {trackedCompaniesCount > 0
+                ? `${trackedCompaniesList.slice(0, 3).join(", ")}${trackedCompaniesCount > 3 ? ` +${trackedCompaniesCount - 3}` : ""}`
+                : "No companies selected"}
             </p>
           </div>
         </div>
@@ -112,11 +115,13 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
                 <span className="text-xs font-bold text-slate-500 block">Overall Progress</span>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 bg-slate-100 h-2.5 rounded-full overflow-hidden p-0">
-                    <div className="bg-violet-600 h-full rounded-full transition-all duration-500" style={{ width: "65%" }} />
+                    <div className="bg-violet-600 h-full rounded-full transition-all duration-500" style={{ width: `${roadmapProgressPercent}%` }} />
                   </div>
-                  <span className="font-mono text-slate-900 font-extrabold text-xs">65%</span>
+                  <span className="font-mono text-slate-900 font-extrabold text-xs">{roadmapProgressPercent}%</span>
                 </div>
-                <span className="text-[11px] text-slate-400 font-mono block">42 / 65 topics completed</span>
+                <span className="text-[11px] text-slate-400 font-mono block">
+                  {completedRoadmapProblems} / {totalRoadmapProblems} problems completed
+                </span>
               </div>
 
               <button
@@ -135,7 +140,7 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
               </div>
 
               <div className="space-y-3.5">
-                {weakFocusProgress.map((item, id) => (
+                {weakFocusProgress.length > 0 ? weakFocusProgress.map((item, id) => (
                   <div key={id} className="space-y-1.5 text-xs">
                     <div className="flex justify-between text-slate-700">
                       <span className="font-semibold text-slate-800">{item.topic}</span>
@@ -147,7 +152,9 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
                       <span className="font-mono text-[10px] text-slate-450 font-bold shrink-0">Progress {item.rate}%</span>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-xs text-slate-400">Add weak topics in your profile to track focus areas.</p>
+                )}
               </div>
 
               <div className="text-right pt-2">
@@ -175,7 +182,9 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed font-sans">
-              You should focus on <span className="font-semibold text-slate-900 font-sans">Dynamic Programming</span> and <span className="font-semibold text-slate-900 font-sans">Graphs</span>. Solve 15-20 problems from the recommended list to improve your readiness.
+              {weakFocusProgress.length > 0
+                ? <>You should focus on <span className="font-semibold text-slate-900 font-sans">{weakFocusProgress[0].topic}</span>. Generate your roadmap to receive targeted problem recommendations.</>
+                : "Complete your profile to unlock tailored AI recommendations."}
             </p>
           </div>
 
@@ -206,27 +215,23 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
         </div>
 
         <div className="grid md:grid-cols-4 gap-4">
-          {[
-            { name: "Amazon", rate: 68, logo: "a", logoBg: "bg-slate-950 text-white font-sans font-black leading-none", progressColor: "bg-emerald-500" },
-            { name: "Microsoft", rate: 72, logo: "M", logoBg: "bg-[#00a4ef] text-white font-extrabold", progressColor: "bg-emerald-500" },
-            { name: "Google", rate: 65, logo: "G", logoBg: "bg-slate-950 text-white font-serif font-black", progressColor: "bg-orange-500" }
-          ].map((comp, idx) => (
+          {trackedCompaniesList.slice(0, 3).map((company, idx) => (
             <div
               key={idx}
               className="p-4 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-all space-y-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)]"
             >
               <div className="flex items-center gap-2.5">
-                <div className={`w-8 h-8 rounded-lg ${comp.logoBg} flex items-center justify-center text-xs shrink-0 select-none`}>
-                  {comp.logo}
+                <div className="w-8 h-8 rounded-lg bg-slate-950 text-white font-sans font-black leading-none flex items-center justify-center text-xs shrink-0 select-none">
+                  {company.charAt(0)}
                 </div>
                 <div className="leading-tight text-left">
-                  <span className="font-bold text-xs text-slate-900 block">{comp.name}</span>
-                  <span className="text-[10px] text-slate-400 block font-mono">Readiness {comp.rate}%</span>
+                  <span className="font-bold text-xs text-slate-900 block">{company}</span>
+                  <span className="text-[10px] text-slate-400 block font-mono">Checklist ready</span>
                 </div>
               </div>
 
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                <div className={`h-full rounded-full ${comp.progressColor}`} style={{ width: `${comp.rate}%` }} />
+                <div className="h-full rounded-full bg-slate-300" style={{ width: "0%" }} />
               </div>
             </div>
           ))}
@@ -241,7 +246,7 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
             </div>
             <div className="leading-tight">
               <span className="font-bold text-xs text-violet-600 block">View All Companies</span>
-              <span className="text-[10px] text-slate-400 block mt-0.5">6 companies</span>
+              <span className="text-[10px] text-slate-400 block mt-0.5">{trackedCompaniesCount} companies</span>
             </div>
           </button>
 
@@ -251,4 +256,3 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
     </div>
   );
 }
-

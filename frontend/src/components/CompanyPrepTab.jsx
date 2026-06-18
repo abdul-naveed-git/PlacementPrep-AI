@@ -15,8 +15,8 @@ import {
 import { apiRequest } from "../lib/api";
 
 export default function CompanyPrepTab({ initialCompanies }) {
-  const companiesList = initialCompanies.length > 0 ? initialCompanies : ["Google", "Microsoft", "Meta", "Amazon"];
-  const [selectedCompany, setSelectedCompany] = useState(companiesList[0]);
+  const companiesList = initialCompanies || [];
+  const [selectedCompany, setSelectedCompany] = useState(companiesList[0] || "");
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [checklist, setChecklist] = useState({
@@ -44,8 +44,16 @@ export default function CompanyPrepTab({ initialCompanies }) {
   };
 
   useEffect(() => {
-    fetchCompanySummary(selectedCompany);
+    if (selectedCompany) {
+      fetchCompanySummary(selectedCompany);
+    }
   }, [selectedCompany]);
+
+  useEffect(() => {
+    if (!selectedCompany && companiesList.length > 0) {
+      setSelectedCompany(companiesList[0]);
+    }
+  }, [companiesList, selectedCompany]);
 
   const toggleChecklistItem = (key) => {
     setChecklist(prev => ({ ...prev, [key]: !prev[key] }));
@@ -56,7 +64,7 @@ export default function CompanyPrepTab({ initialCompanies }) {
       
       {/* Target Companies selector row */}
       <div className="flex flex-wrap gap-2.5">
-        {companiesList.map((company) => (
+        {companiesList.length > 0 ? companiesList.map((company) => (
           <button
             key={company}
             onClick={() => setSelectedCompany(company)}
@@ -69,7 +77,11 @@ export default function CompanyPrepTab({ initialCompanies }) {
             <Building2 className="h-4 w-4" />
             <span>{company} Preparation</span>
           </button>
-        ))}
+        )) : (
+          <div className="p-4 rounded-xl bg-slate-900 border border-white/5 text-xs text-slate-400">
+            Add target companies in your profile to generate company preparation insights.
+          </div>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">

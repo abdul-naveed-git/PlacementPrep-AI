@@ -42,6 +42,18 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    fullName: {
+      type: String,
+      default: "",
+    },
+    academicYear: {
+      type: String,
+      default: "",
+    },
+    department: {
+      type: String,
+      default: "",
+    },
     isVerified: {
       type: Boolean,
       default: false,
@@ -74,6 +86,38 @@ const UserSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "DSARoadmap",
     },
+    recommendedProblems: [
+      {
+        id: String,
+
+        title: String,
+
+        url: String,
+
+        difficulty: String,
+
+        topic: String,
+
+        rationale: String,
+
+        completed: Boolean,
+      },
+    ],
+    topPatterns: [
+      {
+        id: String,
+
+        patternName: String,
+
+        description: String,
+
+        keyInsight: String,
+
+        sampleProblem: String,
+
+        mastered: Boolean,
+      },
+    ],
   },
   {
     timestamps: true,

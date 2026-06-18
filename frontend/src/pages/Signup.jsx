@@ -86,8 +86,6 @@ export default function Signup({ onLoginSuccess }) {
         body: JSON.stringify({ email, otp, password }),
       });
 
-      localStorage.setItem("pf_fullName", "User Profile");
-
       if (onLoginSuccess) {
         onLoginSuccess(res.user, res.token);
       }
@@ -119,8 +117,6 @@ export default function Signup({ onLoginSuccess }) {
         method: "POST",
         body: JSON.stringify({ email, password }),
       });
-
-      localStorage.setItem("pf_fullName", res.user.fullName || "User Profile");
 
       if (onLoginSuccess) {
         onLoginSuccess(res.user, res.token);

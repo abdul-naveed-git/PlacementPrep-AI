@@ -73,19 +73,22 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
   ];
 
   // Calculations for Topic Coverage & problems
-  const totalTopics = roadmap?.topics?.length || 8;
-  const completedTopics = roadmap?.topics?.filter(t => t.status === "completed")?.length || 3;
-  const inProgressTopics = roadmap?.topics?.filter(t => t.status === "in-progress")?.length || 2;
-  const topicsCoveragePercent = Math.round(((completedTopics + inProgressTopics * 0.5) / totalTopics) * 100);
+  const totalTopics = roadmap?.topics?.length ?? 0;
+  const completedTopics = roadmap?.topics?.filter(t => t.status === "completed")?.length ?? 0;
+  const inProgressTopics = roadmap?.topics?.filter(t => t.status === "in-progress")?.length ?? 0;
+  const topicsCoveragePercent =
+    totalTopics > 0
+      ? Math.round(((completedTopics + inProgressTopics * 0.5) / totalTopics) * 100)
+      : 0;
 
-  const totalProblems = roadmap?.topics?.reduce((acc, t) => acc + t.problems.length, 0) || 40;
-  const completedProblems = roadmap?.topics?.reduce((acc, t) => acc + t.problems.filter(p => p.completed).length, 0) || 12;
-  const problemsProgressPercent = totalProblems > 0 ? Math.round((completedProblems / totalProblems) * 100) : 30;
+  const totalProblems = roadmap?.topics?.reduce((acc, t) => acc + t.problems.length, 0) ?? 0;
+  const completedProblems = roadmap?.topics?.reduce((acc, t) => acc + t.problems.filter(p => p.completed).length, 0) ?? 0;
+  const problemsProgressPercent = totalProblems > 0 ? Math.round((completedProblems / totalProblems) * 100) : 0;
 
   // LeetCode Stats representation from User Profile or fallbacks
-  const easySolved = user?.leetcodeStats?.easySolved || 145;
-  const mediumSolved = user?.leetcodeStats?.mediumSolved || 230;
-  const hardSolved = user?.leetcodeStats?.hardSolved || 48;
+  const easySolved = user?.leetcodeStats?.easySolved ?? 0;
+  const mediumSolved = user?.leetcodeStats?.mediumSolved ?? 0;
+  const hardSolved = user?.leetcodeStats?.hardSolved ?? 0;
   const totalLeetCode = easySolved + mediumSolved + hardSolved;
 
   return (
