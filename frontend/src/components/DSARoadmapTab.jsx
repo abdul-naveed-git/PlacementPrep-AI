@@ -1,22 +1,16 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   CheckCircle2,
   Lock,
   ChevronRight,
-  ArrowLeft,
   Check,
   Rocket,
   Compass,
-  FileCode,
-  Flame,
-  Award,
   BookOpen,
-  Eye,
   Star,
   Sparkles,
   Bot,
-  Circle,
   Clock
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
@@ -27,6 +21,10 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
 
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [generationError, setGenerationError] = useState(null);
+  const [recommendedProblems, setRecommendedProblems] = useState([]);
+  const [topPatterns, setTopPatterns] = useState([]);
+  const [isLoadingSubTab, setIsLoadingSubTab] = useState(false);
+  const [subTabError, setSubTabError] = useState(null);
 
   // Bookmarked problems synced with localStorage
   const [bookmarkedProblems, setBookmarkedProblems] = useState(() => {
@@ -157,8 +155,29 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
     }
   ]);
 
+  const buildRoadmapPayload = (nextTopics) => ({
+    ...(roadmap || {}),
+    topics: nextTopics.map((topic) => {
+      const total = topic.problems.length;
+      const solved = topic.problems.filter((problem) => problem.completed).length;
+      const progressPercent = total > 0 ? Math.round((solved / total) * 100) : 0;
+
+      return {
+        topicName: topic.name,
+        description: topic.description,
+        status: topic.status === "locked" ? "pending" : topic.status,
+        progressPercent,
+        problems: topic.problems.map((problem) => ({
+          ...problem,
+          completed: Boolean(problem.completed),
+          topic: problem.topic || topic.name,
+        })),
+      };
+    }),
+  });
+
   // Sync state with prop
-  React.useEffect(() => {
+  useEffect(() => {
     if (roadmap && roadmap.topics && roadmap.topics.length > 0) {
       const mapped = roadmap.topics.map((t, index) => {
         const mappedProblems = t.problems.map((p, pIdx) => ({
@@ -194,6 +213,38 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
     }
   }, [roadmap]);
 
+  useEffect(() => {
+    const loadSubTabData = async () => {
+      if (activeSubTab === "recommended" && recommendedProblems.length === 0) {
+        setIsLoadingSubTab(true);
+        setSubTabError(null);
+        try {
+          const data = await apiRequest("/api/roadmap/recommended");
+          setRecommendedProblems(Array.isArray(data) ? data : []);
+        } catch (err) {
+          setSubTabError(err?.message || "Failed to load recommended problems.");
+        } finally {
+          setIsLoadingSubTab(false);
+        }
+      }
+
+      if (activeSubTab === "patterns" && topPatterns.length === 0) {
+        setIsLoadingSubTab(true);
+        setSubTabError(null);
+        try {
+          const data = await apiRequest("/api/roadmap/patterns");
+          setTopPatterns(Array.isArray(data) ? data : []);
+        } catch (err) {
+          setSubTabError(err?.message || "Failed to load top patterns.");
+        } finally {
+          setIsLoadingSubTab(false);
+        }
+      }
+    };
+
+    loadSubTabData();
+  }, [activeSubTab, recommendedProblems.length, topPatterns.length]);
+
   const handleGenerateAILoadmap = async () => {
     setIsGeneratingRoadmap(true);
     setGenerationError(null);
@@ -211,14 +262,56 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
     }
   };
 
+  const toggleRecommendedProblem = async (problemId, completed) => {
+    const previousProblems = recommendedProblems;
+    const nextProblems = recommendedProblems.map((problem) =>
+      problem.id === problemId ? { ...problem, completed } : problem
+    );
+
+    setRecommendedProblems(nextProblems);
+    try {
+      const data = await apiRequest("/api/roadmap/recommended/toggle", {
+        method: "POST",
+        body: JSON.stringify({ problemId, completed }),
+      });
+      setRecommendedProblems(Array.isArray(data) ? data : nextProblems);
+    } catch (err) {
+      setRecommendedProblems(previousProblems);
+      setSubTabError(err?.message || "Failed to update recommended problem.");
+    }
+  };
+
+  const togglePatternMastered = async (patternId, mastered) => {
+    const previousPatterns = topPatterns;
+    const nextPatterns = topPatterns.map((pattern) =>
+      pattern.id === patternId ? { ...pattern, mastered } : pattern
+    );
+
+    setTopPatterns(nextPatterns);
+    try {
+      const data = await apiRequest("/api/roadmap/patterns/toggle", {
+        method: "POST",
+        body: JSON.stringify({ patternId, mastered }),
+      });
+      setTopPatterns(Array.isArray(data) ? data : nextPatterns);
+    } catch (err) {
+      setTopPatterns(previousPatterns);
+      setSubTabError(err?.message || "Failed to update pattern status.");
+    }
+  };
+
   // Toggle problem status locally with backend proxy sync
   const toggleProblemCompleted = async (topicId, problemId) => {
-    setTopics(prevTopics =>
-      prevTopics.map(t => {
+    const currentProblem = topics
+      .find((topic) => topic.id === topicId)
+      ?.problems.find((problem) => problem.id === problemId);
+    const nextCompleted = !currentProblem?.completed;
+
+    const nextTopics = topics.map(t => {
         if (t.id === topicId) {
           const updatedProblems = t.problems.map(p => {
             if (p.id === problemId) {
-              return { ...p, completed: !p.completed };
+              return { ...p, completed: nextCompleted };
             }
             return p;
           });
@@ -232,7 +325,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
             } else if (solvedPr > 0) {
               newStatus = "in-progress";
             } else {
-              newStatus = "completed"; // fallback
+              newStatus = "in-progress";
             }
           }
           const finalPercent = totalPr > 0 ? Math.round((solvedPr / totalPr) * 100) : 0;
@@ -240,44 +333,95 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
             ...t,
             problems: updatedProblems,
             status: newStatus,
-            progressPercent: t.status === "in-progress" ? finalPercent : t.progressPercent
+            progressPercent: finalPercent
           };
         }
         return t;
-      })
+      });
+
+    const previousTopics = topics;
+    const fallbackPayload = buildRoadmapPayload(nextTopics);
+
+    setTopics(nextTopics);
+    onRoadmapUpdate?.(fallbackPayload);
+
+    const problemExistsInRoadmap = roadmap?.topics?.some((topic) =>
+      topic.problems?.some((problem) => problem.id === problemId)
     );
 
-    // Call server to persist if connected
-    try {
-      await apiRequest("/api/roadmap/problem/toggle", {
-        method: "POST",
-        body: JSON.stringify({ problemId, completed: true })
-      });
-    } catch (e) {
-      console.warn("Backend state stored sync bypass.");
+    if (roadmap?._id && problemExistsInRoadmap) {
+      try {
+        const savedRoadmap = await apiRequest("/api/roadmap/problem/toggle", {
+          method: "POST",
+          body: JSON.stringify({
+            roadmapId: roadmap._id,
+            problemId,
+            completed: nextCompleted,
+          })
+        });
+        onRoadmapUpdate?.(savedRoadmap || fallbackPayload);
+      } catch (err) {
+        setTopics(previousTopics);
+        onRoadmapUpdate?.(buildRoadmapPayload(previousTopics));
+        setGenerationError(err?.message || "Failed to save roadmap progress.");
+      }
     }
   };
 
   // Turn active topic completed/not completed
-  const toggleTopicStatus = (topicId) => {
-    setTopics(prevTopics =>
-      prevTopics.map(t => {
+  const toggleTopicStatus = async (topicId) => {
+    const nextTopics = topics.map(t => {
         if (t.id === topicId) {
           const targetStatus = t.status === "completed" ? "in-progress" : "completed";
           const targetProblems = t.problems.map(p => ({
             ...p,
             completed: targetStatus === "completed"
           }));
+          const totalPr = targetProblems.length;
+          const solvedPr = targetProblems.filter(p => p.completed).length;
           return {
             ...t,
             status: targetStatus,
             problems: targetProblems,
-            progressPercent: targetStatus === "in-progress" ? 50 : undefined
+            progressPercent: totalPr > 0 ? Math.round((solvedPr / totalPr) * 100) : 0
           };
         }
         return t;
-      })
+      });
+
+    const previousTopics = topics;
+    const fallbackPayload = buildRoadmapPayload(nextTopics);
+
+    setTopics(nextTopics);
+    onRoadmapUpdate?.(fallbackPayload);
+
+    const updatedTopic = nextTopics.find((topic) => topic.id === topicId);
+    const topicExistsInRoadmap = roadmap?.topics?.some((topic) =>
+      topic.problems?.some((problem) =>
+        updatedTopic?.problems.some((updatedProblem) => updatedProblem.id === problem.id)
+      )
     );
+
+    if (roadmap?._id && updatedTopic && topicExistsInRoadmap) {
+      try {
+        await Promise.all(
+          updatedTopic.problems.map((problem) =>
+            apiRequest("/api/roadmap/problem/toggle", {
+              method: "POST",
+              body: JSON.stringify({
+                roadmapId: roadmap._id,
+                problemId: problem.id,
+                completed: problem.completed,
+              }),
+            })
+          )
+        );
+      } catch (err) {
+        setTopics(previousTopics);
+        onRoadmapUpdate?.(buildRoadmapPayload(previousTopics));
+        setGenerationError(err?.message || "Failed to save topic progress.");
+      }
+    }
   };
 
   // Find the currently selected topic details
@@ -330,12 +474,35 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
           >
             {/* Header copy precisely matching layout */}
             <div className="space-y-2">
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 font-display">
-                DSA Roadmap
-              </h1>
-              <p className="text-slate-500 text-sm max-w-2xl leading-relaxed">
-                Your roadmap for mastering DSA and ace interviews. Level up your skills and track your progress.
-              </p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                  <h1 className="text-3xl font-black tracking-tight text-slate-900 font-display">
+                    DSA Roadmap
+                  </h1>
+                  <p className="text-slate-500 text-sm max-w-2xl leading-relaxed">
+                    Your roadmap for mastering DSA and ace interviews. Level up your skills and track your progress.
+                  </p>
+                  {weakTopics?.length > 0 && (
+                    <p className="text-[11px] text-indigo-600 font-bold mt-1">
+                      Focus areas: {weakTopics.slice(0, 3).join(", ")}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateAILoadmap}
+                  disabled={isGeneratingRoadmap}
+                  className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-xs font-extrabold flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>{isGeneratingRoadmap ? "Generating..." : "Generate AI Roadmap"}</span>
+                </button>
+              </div>
+              {generationError && (
+                <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+                  {generationError}
+                </div>
+              )}
             </div>
 
             {/* TAB SELECTORS matching list view screenshot */}
@@ -499,16 +666,125 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
 
                 </div>
               </div>
-            ) : (
+            ) : activeSubTab === "recommended" ? (
               <motion.div
-                className="p-8 rounded-3xl bg-white border border-slate-250 text-center text-slate-400 min-h-[300px] flex flex-col items-center justify-center space-y-3"
+                className="space-y-4 w-full max-w-4xl"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4 }}
+                transition={{ duration: 0.25 }}
               >
-                <Compass className="h-10 w-10 text-slate-350 animate-spin" />
-                <h4 className="font-extrabold text-sm text-slate-755">Compiling algorithmic variables...</h4>
-                <p className="text-xs text-slate-400 max-w-sm">Please select active roadmap directory items to start tracking recommended challenges.</p>
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-black text-lg text-slate-900">Recommended Problems</h2>
+                    <p className="text-xs text-slate-500">Targeted practice generated from your weak topics and company goals.</p>
+                  </div>
+                  <Bot className="h-5 w-5 text-indigo-600" />
+                </div>
+
+                {isLoadingSubTab ? (
+                  <div className="p-8 rounded-3xl bg-white border border-slate-200 text-center text-slate-400 space-y-3">
+                    <Compass className="h-8 w-8 mx-auto animate-spin" />
+                    <p className="text-xs font-bold">Loading recommendations...</p>
+                  </div>
+                ) : subTabError ? (
+                  <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-xs font-semibold text-red-700">
+                    {subTabError}
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {recommendedProblems.map((problem) => (
+                      <div key={problem.id} className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <a
+                              href={problem.url || "https://leetcode.com/"}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="font-extrabold text-sm text-slate-900 hover:text-indigo-600"
+                            >
+                              {problem.title}
+                            </a>
+                            <p className="text-[11px] text-slate-500 mt-1">{problem.topic}</p>
+                          </div>
+                          <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-md ${
+                            problem.difficulty === "Easy" ? "bg-emerald-50 text-emerald-600" :
+                            problem.difficulty === "Medium" ? "bg-amber-50 text-amber-600" :
+                            "bg-red-50 text-red-600"
+                          }`}>
+                            {problem.difficulty}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{problem.rationale}</p>
+                        <button
+                          type="button"
+                          onClick={() => toggleRecommendedProblem(problem.id, !problem.completed)}
+                          className={`w-full py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                            problem.completed
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                              : "bg-slate-50 text-slate-600 border border-slate-200 hover:border-indigo-200"
+                          }`}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>{problem.completed ? "Completed" : "Mark Completed"}</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            ) : (
+              <motion.div
+                className="space-y-4 w-full max-w-4xl"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.25 }}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-black text-lg text-slate-900">Top Patterns</h2>
+                    <p className="text-xs text-slate-500">Reusable interview patterns to master for your target companies.</p>
+                  </div>
+                  <Sparkles className="h-5 w-5 text-indigo-600" />
+                </div>
+
+                {isLoadingSubTab ? (
+                  <div className="p-8 rounded-3xl bg-white border border-slate-200 text-center text-slate-400 space-y-3">
+                    <Compass className="h-8 w-8 mx-auto animate-spin" />
+                    <p className="text-xs font-bold">Loading patterns...</p>
+                  </div>
+                ) : subTabError ? (
+                  <div className="p-4 rounded-2xl bg-red-50 border border-red-100 text-xs font-semibold text-red-700">
+                    {subTabError}
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {topPatterns.map((pattern) => (
+                      <div key={pattern.id} className="p-4 rounded-2xl bg-white border border-slate-200 space-y-3 shadow-sm">
+                        <div className="flex items-start gap-2">
+                          <BookOpen className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+                          <div>
+                            <h3 className="font-extrabold text-sm text-slate-900">{pattern.patternName}</h3>
+                            <p className="text-[11px] text-slate-500 mt-1">{pattern.sampleProblem}</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-relaxed">{pattern.description}</p>
+                        <p className="text-[11px] text-slate-600 font-semibold leading-relaxed">{pattern.keyInsight}</p>
+                        <button
+                          type="button"
+                          onClick={() => togglePatternMastered(pattern.id, !pattern.mastered)}
+                          className={`w-full py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                            pattern.mastered
+                              ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                              : "bg-slate-50 text-slate-600 border border-slate-200 hover:border-indigo-200"
+                          }`}
+                        >
+                          <Check className="h-3.5 w-3.5" />
+                          <span>{pattern.mastered ? "Mastered" : "Mark Mastered"}</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             )}
 

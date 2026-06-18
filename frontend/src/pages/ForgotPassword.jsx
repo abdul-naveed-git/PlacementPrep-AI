@@ -8,16 +8,37 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../lib/api";
+import {
+  forgotPasswordSchema,
+  getFirstZodErrorMessage,
+} from "../lib/validation";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
 
+    const parsed = forgotPasswordSchema.safeParse({ email });
+    if (!parsed.success) {
+      setErrorMsg(
+        getFirstZodErrorMessage(
+          parsed.error,
+          "Please enter a valid email address.",
+        ),
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
     try {
-      await apiRequest("/api/auth/forgot-password", {
+      const response = await apiRequest("/api/auth/forgot-password", {
         method: "POST",
 
         body: JSON.stringify({
@@ -25,13 +46,16 @@ export default function ForgotPassword() {
         }),
       });
 
+      setSuccessMsg(response?.message || "OTP sent successfully.");
       navigate("/verify-otp", {
         state: {
           email,
         },
       });
     } catch (err) {
-      console.log(err);
+      setErrorMsg(err.message || "Failed to send OTP.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -112,6 +136,18 @@ export default function ForgotPassword() {
             Enter your registered email address
           </p>
 
+          {errorMsg && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+              {errorMsg}
+            </div>
+          )}
+
+          {successMsg && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+              {successMsg}
+            </div>
+          )}
+
           <form onSubmit={handleSendOtp} className="space-y-5">
             <div className="space-y-1.5">
               <label className="block text-xs font-bold text-slate-700">
@@ -134,10 +170,27 @@ export default function ForgotPassword() {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="w-full py-3.5 rounded-xl text-xs font-black bg-[#4f46e5] hover:bg-[#4338ca] text-white transition-all shadow-md cursor-pointer"
             >
-              Send OTP
+              {isLoading ? "Sending..." : "Send OTP"}
             </button>
+            <div className="text-center pt-2 text-xs text-slate-600">
+              Remember Your password?{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  navigate("/login", {
+                    state: {
+                      email,
+                    },
+                  });
+                }}
+                className="text-[#4f46e5] font-extrabold hover:underline cursor-pointer"
+              >
+                Log in
+              </button>
+            </div>
           </form>
         </div>
       </div>

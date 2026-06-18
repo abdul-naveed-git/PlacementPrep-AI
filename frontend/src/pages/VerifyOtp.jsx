@@ -8,14 +8,34 @@ import {
   MailCheck,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import { getFirstZodErrorMessage, verifyOtpSchema } from "../lib/validation";
 export default function VerifyOtp() {
   const [otp, setOtp] = useState("");
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email;
 
   const handleVerify = async (e) => {
     e.preventDefault();
+
+    if (!email) {
+      setErrorMsg("Please start the recovery flow again.");
+      navigate("/forgot-password");
+      return;
+    }
+
+    const parsed = verifyOtpSchema.safeParse({ email, otp });
+    if (!parsed.success) {
+      setErrorMsg(
+        getFirstZodErrorMessage(parsed.error, "Please enter the 6-digit OTP."),
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setErrorMsg(null);
     try {
       await apiRequest("/api/auth/verify-reset-otp", {
         method: "POST",
@@ -29,10 +49,13 @@ export default function VerifyOtp() {
       navigate("/reset-password", {
         state: {
           email,
+          otp,
         },
       });
     } catch (err) {
-      console.log(err);
+      setErrorMsg(err.message || "OTP verification failed.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -126,6 +149,12 @@ export default function VerifyOtp() {
             Enter the 6-digit code sent to your email
           </p>
 
+          {errorMsg && (
+            <div className="mb-5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700">
+              {errorMsg}
+            </div>
+          )}
+
           <form onSubmit={handleVerify} className="space-y-5">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-2">
@@ -161,6 +190,7 @@ export default function VerifyOtp() {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="
                 w-full
                 py-3.5
@@ -175,7 +205,7 @@ export default function VerifyOtp() {
                 cursor-pointer
               "
             >
-              Verify OTP
+              {isLoading ? "Verifying..." : "Verify OTP"}
             </button>
           </form>
         </div>

@@ -1,15 +1,8 @@
-import React from "react";
-import { motion } from "motion/react";
 import {
-  Sparkles,
-  TrendingUp,
-  Award,
   Flame,
   Building2,
   ChevronRight,
   ArrowRight,
-  Workflow,
-  CheckCircle2,
   Bot
 } from "lucide-react";
 
@@ -21,21 +14,52 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
 
   const trackedCompaniesList = user?.targetCompanies || [];
   const trackedCompaniesCount = trackedCompaniesList.length;
-  const totalRoadmapProblems = roadmap?.topics?.reduce((acc, topic) => acc + (topic.problems?.length || 0), 0) ?? 0;
-  const completedRoadmapProblems = roadmap?.topics?.reduce(
-    (acc, topic) => acc + (topic.problems?.filter((problem) => problem.completed).length || 0),
-    0,
-  ) ?? 0;
+  const roadmapTopics = roadmap?.topics || [];
+  const getTopicName = (topic) => topic?.topicName || topic?.name || topic?.title || "";
+  const getTopicProblems = (topic) => topic?.problems || [];
+  const getTopicProgress = (topic) => {
+    const problems = getTopicProblems(topic);
+    const total = problems.length;
+    const completed = problems.filter((problem) => Boolean(problem.completed)).length;
+
+    return {
+      completed,
+      total,
+      percent: total > 0 ? Math.round((completed / total) * 100) : 0,
+    };
+  };
+
+  const totalRoadmapProblems = roadmapTopics.reduce((acc, topic) => acc + getTopicProgress(topic).total, 0);
+  const completedRoadmapProblems = roadmapTopics.reduce((acc, topic) => acc + getTopicProgress(topic).completed, 0);
   const roadmapProgressPercent =
     totalRoadmapProblems > 0
       ? Math.round((completedRoadmapProblems / totalRoadmapProblems) * 100)
       : 0;
 
-  const weakFocusProgress = (user?.weakTopics || []).map((topic) => ({
-    topic,
-    rate: 0,
-    color: "bg-red-500",
-  }));
+  const weakFocusProgress = (user?.weakTopics || [])
+    .map((topic) => {
+      const normalizedWeakTopic = topic.toLowerCase().trim();
+      const matchedRoadmapTopic = roadmapTopics.find((roadmapTopic) => {
+        const roadmapTopicName = getTopicName(roadmapTopic).toLowerCase().trim();
+
+        return (
+          roadmapTopicName === normalizedWeakTopic ||
+          roadmapTopicName.includes(normalizedWeakTopic) ||
+          normalizedWeakTopic.includes(roadmapTopicName)
+        );
+      });
+      const progress = matchedRoadmapTopic ? getTopicProgress(matchedRoadmapTopic) : null;
+      const rate = progress?.percent ?? 0;
+
+      return {
+        topic,
+        rate,
+        completed: progress?.completed ?? 0,
+        total: progress?.total ?? 0,
+        color: rate >= 100 ? "bg-emerald-500" : rate > 0 ? "bg-amber-500" : "bg-red-500",
+      };
+    })
+    .sort((a, b) => a.rate - b.rate);
 
   return (
     <div id="home_dashboard_welcome_view" className="space-y-6">
@@ -81,23 +105,6 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
             </p>
           </div>
         </div>
-
-        {/* Current Streak */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-all duration-300 flex justify-between items-start gap-2">
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-450 block">Current Streak</span>
-            <div className="space-y-1.5">
-              <span className="text-3xl font-sans font-black text-slate-900 block leading-none">12</span>
-              <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-50 text-[10px] font-extrabold text-amber-700 font-mono">
-                🔥 days
-              </span>
-            </div>
-          </div>
-          <div className="p-2.5 rounded-xl bg-amber-50 text-amber-500 mt-2">
-            <Flame className="h-6 w-6 fill-amber-500" />
-          </div>
-        </div>
-
       </div>
 
       {/* Middle Grid: Your Roadmap Progress (2/3 width) vs AI Recommendation (1/3 width) */}
@@ -149,7 +156,9 @@ export default function HomeTab({ user, roadmap, onNavigateTab, readinessIndexPe
                       <div className="flex-1 bg-slate-100 h-2 rounded-full overflow-hidden">
                         <div className={`h-full rounded-full ${item.color}`} style={{ width: `${item.rate}%` }} />
                       </div>
-                      <span className="font-mono text-[10px] text-slate-450 font-bold shrink-0">Progress {item.rate}%</span>
+                      <span className="font-mono text-[10px] text-slate-450 font-bold shrink-0">
+                        {item.total > 0 ? `${item.completed}/${item.total}` : "Not in roadmap"} · {item.rate}%
+                      </span>
                     </div>
                   </div>
                 )) : (

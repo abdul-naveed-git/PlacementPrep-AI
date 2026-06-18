@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
+const validateRequest = require("../middleware/validateRequest");
+const { profileSchema } = require("../validation/schemas");
 const { getuser, postuser } = require("../controller/userController");
 const { leetcodesync } = require("../controller/userController");
 router.get("/profile", authMiddleware, getuser);
-router.post("/profile", authMiddleware, postuser);
+router.post("/profile", authMiddleware, validateRequest(profileSchema), postuser);
 router.post("/leetcode/sync", authMiddleware, leetcodesync);
 module.exports = router;

@@ -270,7 +270,7 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-5 border-b border-white/40">
             <div>
               <h1 className="text-2xl sm:text-[28px] font-black font-display text-slate-900 tracking-tight flex items-center gap-2">
-                Welcome back, {localFullName.split(" ")[0]} 👋
+                Welcome back, {localFullName.split(" ")[0]}
               </h1>
               <p className="text-slate-500 text-xs mt-1.5">
                 Let's continue your placement preparation
@@ -278,14 +278,6 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
             </div>
 
             <div className="flex items-center gap-4 self-end sm:self-auto">
-              {/* Notification Bell */}
-              <button
-                className="p-2 h-10 w-10 bg-white/70 backdrop-blur-xl hover:bg-white border border-white/40 rounded-full text-slate-500 hover:text-violet-600 transition-all duration-300 cursor-pointer relative flex items-center justify-center hover:scale-105 shadow-md"
-                title="Notifications"
-              >
-                <Bell className="h-4.5 w-4.5" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-violet-600 rounded-full animate-pulse" />
-              </button>
 
               {/* User profile info dropdown widget matching mockup */}
               <div className="flex items-center gap-3 pl-3 border-l border-slate-200 h-10"><div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-md hover:shadow-violet-500/10 hover:scale-[1.02] transition-all duration-300">
@@ -300,7 +292,6 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
                   <span className="font-bold text-xs text-slate-900 block">{localFullName}</span>
                   <span className="text-[10px] text-slate-450 font-mono block">@{localLeetcodeUsername}</span>
                 </div>
-                <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
               </div>
               </div>
             </div>

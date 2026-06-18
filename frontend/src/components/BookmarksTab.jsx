@@ -1,19 +1,14 @@
-import React, { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  Bookmark, 
-  Sparkles, 
-  Trash2, 
-  ExternalLink, 
-  BookOpen, 
+import {
+  Sparkles,
+  Trash2,
+  ExternalLink,
+  BookOpen,
   Star,
-  CheckCircle,
-  Clock,
-  Briefcase
 } from "lucide-react";
 
 export default function BookmarksTab() {
-  // Stateful bookmarked problems loaded from localStorage
   const [bookmarkedProblems, setBookmarkedProblems] = useState(() => {
     const saved = localStorage.getItem("pf_bookmarked_problems");
     return saved ? JSON.parse(saved) : [];
@@ -26,7 +21,7 @@ export default function BookmarksTab() {
       source: "Crowdsourced logs",
       category: "interview_experience",
       savedDate: "2 days ago",
-      note: "Important focus on Topological sort & finding longest cycle. Need to review course schedule."
+      note: "Important focus on Topological sort & finding longest cycle. Need to review course schedule.",
     },
     {
       id: "b-2",
@@ -34,7 +29,7 @@ export default function BookmarksTab() {
       source: "Crowdsourced logs",
       category: "interview_experience",
       savedDate: "4 days ago",
-      note: "OA matches greedy pattern string manipulation questions. Speed parameter is critical."
+      note: "OA matches greedy pattern string manipulation questions. Speed parameter is critical.",
     },
     {
       id: "b-3",
@@ -42,8 +37,8 @@ export default function BookmarksTab() {
       source: "Curated sheets",
       category: "cheat_sheet",
       savedDate: "1 week ago",
-      note: "Contains dynamic visual grids of BFS and DFS stack bounds. Useful for horizontal whiteboard queries."
-    }
+      note: "Contains dynamic visual grids of BFS and DFS stack bounds. Useful for horizontal whiteboard queries.",
+    },
   ]);
 
   // Synchronize dynamic updates
@@ -59,13 +54,13 @@ export default function BookmarksTab() {
   }, []);
 
   const removeProblemBookmark = (problemId) => {
-    const updated = bookmarkedProblems.filter(p => p.id !== problemId);
+    const updated = bookmarkedProblems.filter((p) => p.id !== problemId);
     setBookmarkedProblems(updated);
     localStorage.setItem("pf_bookmarked_problems", JSON.stringify(updated));
   };
 
   const removeArticle = (id) => {
-    setArticles(prev => prev.filter(a => a.id !== id));
+    setArticles((prev) => prev.filter((a) => a.id !== id));
   };
 
   const getDifficultyStyles = (diff) => {
@@ -81,18 +76,21 @@ export default function BookmarksTab() {
 
   return (
     <div id="bookmarks_workspace_view" className="space-y-6">
-      
       {/* Visual Header Block */}
       <div className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm">
-        <span className="text-[10px] uppercase font-extrabold tracking-widest text-indigo-600">Saved Library</span>
-        <h2 className="text-xl font-black text-slate-900 mt-0.5">Your Saved Problems & References</h2>
+        <span className="text-[10px] uppercase font-extrabold tracking-widest text-indigo-600">
+          Saved Library
+        </span>
+        <h2 className="text-xl font-black text-slate-900 mt-0.5">
+          Your Saved Problems & References
+        </h2>
         <p className="text-xs text-slate-500 mt-1 max-w-xl leading-relaxed">
-          Review saved crowd-sourced articles, reference sheets, or difficult target LeetCode components.
+          Review saved crowd-sourced articles, reference sheets, or difficult
+          target LeetCode components.
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
         {/* LEFT COMPONENT: SAVED PROBLEM CARDS LISTING (7 Columns) */}
         <div className="lg:col-span-7 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-2">
@@ -109,7 +107,7 @@ export default function BookmarksTab() {
 
           <AnimatePresence mode="popLayout">
             {bookmarkedProblems.length === 0 ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
@@ -119,9 +117,14 @@ export default function BookmarksTab() {
                   <Star className="h-5 w-5 text-slate-350" />
                 </div>
                 <div>
-                  <p className="text-semibold text-slate-700 text-sm">No bookmarked problems yet</p>
+                  <p className="text-semibold text-slate-700 text-sm">
+                    No bookmarked problems yet
+                  </p>
                   <p className="text-[11.5px] text-slate-450 mt-1 max-w-sm mx-auto">
-                    Browse the <strong className="text-indigo-600">DSA Roadmap</strong>, deep dive into topics like Arrays, Graphs, or Heaps, and mark your target questions.
+                    Browse the{" "}
+                    <strong className="text-indigo-600">DSA Roadmap</strong>,
+                    deep dive into topics like Arrays, Graphs, or Heaps, and
+                    mark your target questions.
                   </p>
                 </div>
               </motion.div>
@@ -142,15 +145,17 @@ export default function BookmarksTab() {
                         <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-650 text-[9px] font-black uppercase font-mono tracking-wider">
                           {p.topic}
                         </span>
-                        <span className={`px-1.5 py-0.5 rounded-lg text-[9px] font-black uppercase font-mono border ${getDifficultyStyles(p.difficulty)}`}>
+                        <span
+                          className={`px-1.5 py-0.5 rounded-lg text-[9px] font-black uppercase font-mono border ${getDifficultyStyles(p.difficulty)}`}
+                        >
                           {p.difficulty}
                         </span>
                       </div>
 
-                      <a 
+                      <a
                         href={p.url}
-                        target="_blank" 
-                        rel="noreferrer" 
+                        target="_blank"
+                        rel="noreferrer"
                         className="font-extrabold text-sm text-slate-800 hover:text-indigo-600 transition-colors flex items-center gap-1 leading-snug group-hover:underline cursor-pointer"
                       >
                         <span className="truncate">{p.title}</span>
@@ -158,7 +163,7 @@ export default function BookmarksTab() {
                       </a>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => removeProblemBookmark(p.id)}
                       className="text-slate-400 hover:text-rose-500 p-2 rounded-xl hover:bg-slate-50 transition-all shrink-0 cursor-pointer"
                       title="De-bookmark"
@@ -193,15 +198,17 @@ export default function BookmarksTab() {
                   className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 transition-all space-y-2 relative"
                 >
                   <div className="flex justify-between items-start">
-                    <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase border ${
-                      art.category === "interview_experience" 
-                        ? "bg-violet-50 text-violet-650 border-violet-100" 
-                        : "bg-emerald-50 text-emerald-650 border-emerald-100"
-                    }`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase border ${
+                        art.category === "interview_experience"
+                          ? "bg-violet-50 text-violet-650 border-violet-100"
+                          : "bg-emerald-50 text-emerald-650 border-emerald-100"
+                      }`}
+                    >
                       {art.category.replace("_", " ")}
                     </span>
 
-                    <button 
+                    <button
                       onClick={() => removeArticle(art.id)}
                       className="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-slate-50 transition-all cursor-pointer"
                     >
@@ -240,9 +247,7 @@ export default function BookmarksTab() {
             </div>
           </div>
         </div>
-
       </div>
-
     </div>
   );
 }

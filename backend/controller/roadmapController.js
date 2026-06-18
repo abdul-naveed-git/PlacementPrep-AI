@@ -32,11 +32,29 @@ const getRoadmap = async (req, res) => {
 };
 const toggleProblem = async (req, res) => {
   try {
-    const { problemId, completed } = req.body;
+    const { problemId, completed, roadmapId } = req.body;
+    const user = await User.findById(req.user.id).select("selectedRoadmapId");
 
-    const roadmap = await DSARoadmap.findOne({
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found",
+      });
+    }
+
+    const roadmapQuery = {
       userId: req.user.id,
-    });
+      ...(roadmapId || user.selectedRoadmapId
+        ? { _id: roadmapId || user.selectedRoadmapId }
+        : {}),
+    };
+
+    let roadmap = await DSARoadmap.findOne(roadmapQuery);
+
+    if (!roadmap && !roadmapId && !user.selectedRoadmapId) {
+      roadmap = await DSARoadmap.findOne({
+        userId: req.user.id,
+      }).sort({ updatedAt: -1 });
+    }
 
     if (!roadmap) {
       return res.status(404).json({

@@ -20,7 +20,7 @@ exports.Register = async (req, res) => {
         .json({ error: "An account with this email already exists." });
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(otp);
+    //console.log(otp);
     await sendOTPEmail(email, otp);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     let record = await OTP.findOne({ email });
@@ -212,7 +212,15 @@ exports.verifyResetOtp = async (req, res) => {
 };
 exports.resetPassword = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, otp, password } = req.body;
+
+    const record = await OTP.findOne({ email });
+
+    if (!record || record.otp !== otp || record.expiresAt < new Date()) {
+      return res.status(400).json({
+        error: "Invalid or expired OTP",
+      });
+    }
 
     const user = await User.findOne({ email });
 
