@@ -115,10 +115,13 @@ export default function Dashboard({ user: initialUser, onLogout }) {
   ];
 
   return (
-    <div id="placementpilot_scaffold_shell" className="min-h-screen bg-[#f8fafc] text-slate-800 flex font-sans w-full">
+    <div id="placementpilot_scaffold_shell"
+      className="relative min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-blue-50/30 text-slate-800 flex font-sans w-full overflow-hidden">
+      <div className="absolute top-20 left-40 w-72 h-72 bg-violet-500/10 blur-[120px] rounded-full"></div>
 
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-500/10 blur-[120px] rounded-full"></div>
       {/* LEFT SIDEBAR - Desktop Mode */}
-      <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 bg-white shrink-0 sticky top-0 h-screen z-30 justify-between p-6">
+      <aside className="hidden lg:flex flex-col w-64 bg-white/70 backdrop-blur-xl border-r border-white/40 shadow-xl shadow-violet-500/5 shrink-0 sticky top-0 h-screen z-30 justify-between p-6">
         <div className="space-y-6">
 
           {/* Brand Identity / Logo */}
@@ -145,12 +148,12 @@ export default function Dashboard({ user: initialUser, onLogout }) {
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-3 cursor-pointer group ${isSelected
-                    ? "bg-violet-50 text-violet-600"
-                    : "text-slate-500 hover:text-slate-950 hover:bg-slate-50"
+                  className={`w-full px-3.5 py-3 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-3 cursor-pointer group ${isSelected
+                    ? "bg-gradient-to-r from-violet-500/10 to-blue-500/10 border-l-4 border-violet-600 text-violet-700 shadow-md"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-white/70 hover:translate-x-1"
                     }`}
                 >
-                  <Icon className={`h-4.5 w-4.5 transition-transform ${isSelected ? "text-violet-600" : "text-slate-400 group-hover:text-slate-700"}`} />
+                  <Icon className={`h-4.5 w-4.5 transition-all duration-300 group-hover:scale-110 ${isSelected ? "text-violet-600" : "text-slate-400 group-hover:text-slate-700"}`} />
                   <span>{item.label}</span>
                 </button>
               );
@@ -250,7 +253,7 @@ export default function Dashboard({ user: initialUser, onLogout }) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
 
           {/* HEADER ROW - EXACTLY MATCHING SECOND SCREENSHOT */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-4 border-b border-slate-200/50">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-5 border-b border-white/40">
             <div>
               <h1 className="text-2xl sm:text-[28px] font-black font-display text-slate-900 tracking-tight flex items-center gap-2">
                 Welcome back, {localFullName.split(" ")[0]} 👋
@@ -263,7 +266,7 @@ export default function Dashboard({ user: initialUser, onLogout }) {
             <div className="flex items-center gap-4 self-end sm:self-auto">
               {/* Notification Bell */}
               <button
-                className="p-2 h-10 w-10 bg-white hover:bg-slate-50 border border-slate-200 rounded-full text-slate-500 hover:text-slate-800 transition-colors cursor-pointer relative flex items-center justify-center"
+                className="p-2 h-10 w-10 bg-white/70 backdrop-blur-xl hover:bg-white border border-white/40 rounded-full text-slate-500 hover:text-violet-600 transition-all duration-300 cursor-pointer relative flex items-center justify-center hover:scale-105 shadow-md"
                 title="Notifications"
               >
                 <Bell className="h-4.5 w-4.5" />
@@ -271,8 +274,8 @@ export default function Dashboard({ user: initialUser, onLogout }) {
               </button>
 
               {/* User profile info dropdown widget matching mockup */}
-              <div className="flex items-center gap-3 pl-3 border-l border-slate-200 h-10">
-                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 overflow-hidden shrink-0 shadow-sm">
+              <div className="flex items-center gap-3 pl-3 border-l border-slate-200 h-10"><div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-md hover:shadow-violet-500/10 hover:scale-[1.02] transition-all duration-300">
+                <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-violet-100 overflow-hidden shrink-0 shadow-md">
                   <img
                     src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150&auto=format&fit=crop"
                     alt="Arjun Verma Avatar"
@@ -284,6 +287,7 @@ export default function Dashboard({ user: initialUser, onLogout }) {
                   <span className="text-[10px] text-slate-450 font-mono block">@{localLeetcodeUsername}</span>
                 </div>
                 <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+              </div>
               </div>
             </div>
           </div>

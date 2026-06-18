@@ -16,29 +16,51 @@ import {
 } from "lucide-react";
 export default function LandingPage() {
     return (
-        <div className="min-h-screen text-white overflow-hidden bg-gradient-to-br from-[#050816] via-[#071330] to-[#120033]">
+        <div className="relative min-h-screen text-white overflow-hidden bg-[#04081d]">
+            <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-700/20 blur-[160px] rounded-full"></div>
+
+            <div className="absolute top-20 right-0 w-[400px] h-[400px] bg-violet-700/20 blur-[160px] rounded-full"></div>
+
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[200px] bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500 blur-[120px] opacity-40 rounded-full"></div>
             {/* Navbar */}
-            <nav className="flex items-center justify-between px-8 py-6">
+            <nav className="relative z-10 flex items-center justify-between px-8 py-6">
                 <div className="flex items-center gap-3">
                     <div className="text-4xl font-bold text-violet-500">P</div>
                     <h1 className="text-xl font-bold">PlacementPilot AI</h1>
                 </div>
 
-                <div className="hidden md:flex gap-10 font-medium">
-                    <a href="/">Home</a>
-                    <a href="/dashboard">Dashboard</a>
-                    <a href="#about">About</a>
+                <div className="hidden md:flex gap-10 font-medium text-gray-300">
+                    <a
+                        href="/"
+                        className="relative hover:text-violet-400 transition-all duration-300 after:content-[''] after:absolute after:left-0 after:-bottom-1 after:w-0 after:h-[2px] after:bg-violet-500 hover:after:w-full after:transition-all after:duration-300"
+                    >
+                        Home
+                    </a>
+
+                    <a
+                        href="/dashboard"
+                        className="relative hover:text-violet-400 transition-all duration-300 after:content-[''] after:absolute after:left-0 after:-bottom-1 after:w-0 after:h-[2px] after:bg-violet-500 hover:after:w-full after:transition-all after:duration-300"
+                    >
+                        Dashboard
+                    </a>
+
+                    <a
+                        href="#about"
+                        className="relative hover:text-violet-400 transition-all duration-300 after:content-[''] after:absolute after:left-0 after:-bottom-1 after:w-0 after:h-[2px] after:bg-violet-500 hover:after:w-full after:transition-all after:duration-300"
+                    >
+                        About
+                    </a>
                 </div>
 
                 <div className="flex gap-4">
                     <Link to="/login">
-                        <button className="px-6 py-3 border border-gray-700 rounded-xl hover:border-violet-500 transition">
+                        <button className="px-6 py-3 border border-violet-500/30 bg-white/5 backdrop-blur-md rounded-xl hover:bg-violet-500 hover:border-violet-500 hover:shadow-lg hover:shadow-violet-500/40 transition-all duration-500">
                             Login
                         </button>
                     </Link>
 
                     <Link to="/signup">
-                        <button className="px-6 py-3 bg-violet-600 rounded-xl hover:bg-violet-700 transition">
+                        <button className="px-6 py-3 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:brightness-110 hover:shadow-lg hover:shadow-violet-500/50 transition-all duration-500">
                             Sign Up
                         </button>
                     </Link>
@@ -46,23 +68,23 @@ export default function LandingPage() {
             </nav>
 
             {/* Hero Section */}
-            <section className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+            <section className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-12">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
 
                     {/* Left Side */}
                     <div>
-                        <div className="inline-block px-5 py-2 rounded-full bg-slate-800 text-sm mb-8">
+                        <div className="inline-block px-6 py-3 rounded-full bg-gradient-to-r from-violet-600/20 to-purple-600/20 border border-violet-500/30 backdrop-blur-md text-sm mb-8 text-violet-200 shadow-lg hover:shadow-violet-500/30 transition-all duration-500">
                             ✨ AI-Powered Placement Preparation
                         </div>
 
-                        <h1 className="text-4xl lg:text-5xl font-bold leading-tight">
+                        <h1 className="text-5xl lg:text-7xl font-extrabold leading-tight tracking-tight">
                             Your AI Co-pilot for
-                            <span className="block text-violet-500">
+                            <span className="block bg-gradient-to-r from-violet-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
                                 Placement Success
                             </span>
                         </h1>
 
-                        <p className="text-gray-400 text-base mt-6 max-w-xl leading-relaxed">
+                        <p className="text-gray-300 text-lg mt-8 max-w-xl leading-9">
                             Personalized roadmaps, real interview experiences,
                             AI insights and smart analytics to help you crack
                             your dream company.
@@ -70,13 +92,13 @@ export default function LandingPage() {
 
                         <div className="flex flex-wrap gap-5 mt-10">
                             <Link to="/signup">
-                                <button className="bg-violet-600 px-8 py-4 rounded-xl font-semibold hover:bg-violet-700 transition">
+                                <button className="bg-gradient-to-r from-violet-600 to-purple-600 px-8 py-4 rounded-xl font-semibold shadow-lg shadow-violet-500/30 hover:shadow-violet-500/60 hover:brightness-110 transition-all duration-500">
                                     Sign Up for Free
                                 </button>
                             </Link>
 
                             <Link to="/login">
-                                <button className="border border-gray-700 px-8 py-4 rounded-xl font-semibold hover:border-violet-500 transition">
+                                <button className="border border-violet-500/40 bg-white/5 backdrop-blur-sm px-8 py-4 rounded-xl font-semibold hover:bg-violet-500 hover:border-violet-500 transition-all duration-500">
                                     Login to Your Account
                                 </button>
                             </Link>
@@ -88,19 +110,44 @@ export default function LandingPage() {
                                 Trusted by 10,000+ students from
                             </p>
 
-                            <div className="flex flex-wrap gap-8 text-2xl font-bold text-gray-300">
-                                <span>Google</span>
-                                <span>Amazon</span>
-                                <span>Microsoft</span>
-                                <span>Adobe</span>
-                                <span>TCS</span>
+                            <div className="flex flex-wrap items-center gap-10 mt-6">
+
+                                <img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg"
+                                    alt="Google"
+                                    className="h-8 object-contain"
+                                />
+
+                                <img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg"
+                                    alt="Amazon"
+                                    className="h-8 object-contain"
+                                />
+
+                                <img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg"
+                                    alt="Microsoft"
+                                    className="h-8 object-contain"
+                                />
+
+                                <img
+                                    src="https://upload.wikimedia.org/wikipedia/commons/7/7b/Adobe_Systems_logo_and_wordmark.svg"
+                                    alt="Adobe"
+                                    className="h-8 object-contain"
+                                />
+
                             </div>
                         </div>
                     </div>
 
                     {/* Right Side Card */}
-                    <div>
-                        <div className="bg-gradient-to-br from-[#101a3d] to-[#120d35] border border-slate-600 rounded-[32px] p-8 shadow-[0_0_50px_rgba(139,92,246,0.15)]">
+                    {/* Right Side Card */}
+                    <div className="relative">
+
+                        {/* Bottom neon wave */}
+                        <div className="absolute -bottom-8 right-0 w-[450px] h-[140px] bg-gradient-to-r from-blue-500 via-violet-500 to-purple-500 blur-[55px] opacity-60"></div>
+
+                        <div className="relative bg-gradient-to-br from-[#0f1837] via-[#131c44] to-[#1b1140] border border-slate-700/70 rounded-[32px] p-8 shadow-[0_0_60px_rgba(59,130,246,0.15)] hover:border-violet-500/50 hover:shadow-[0_0_80px_rgba(139,92,246,0.30)] transition-all duration-500">
 
                             <div className="grid md:grid-cols-2 gap-8">
                                 {/* Progress */}
@@ -201,7 +248,7 @@ export default function LandingPage() {
                                 </div>
                             </div>
                             {/* Recommendation */}
-                            <div className="mt-8 bg-slate-900 rounded-2xl p-5 flex justify-between items-center">
+                            <div className="mt-8 bg-slate-900/80 border border-slate-700 rounded-2xl p-5 flex justify-between items-center hover:bg-slate-800 hover:border-violet-500/40 hover:shadow-lg hover:shadow-violet-500/20 transition-all duration-500">
                                 <div>
                                     <h4 className="font-semibold">
                                         Recommended for you
@@ -256,7 +303,10 @@ export default function LandingPage() {
                                 desc: "Track progress and improve with insights",
                             },
                         ].map((item, index) => (
-                            <div key={index}>
+                            <div
+                                key={index}
+                                className="bg-white rounded-3xl p-6 border border-gray-100 shadow-md hover:shadow-2xl hover:-translate-y-3 transition-all duration-300 cursor-pointer"
+                            >
                                 <div className="w-24 h-24 mx-auto bg-violet-100 rounded-3xl flex items-center justify-center mb-6">
                                     {item.icon}
                                 </div>
@@ -302,7 +352,7 @@ export default function LandingPage() {
                         ].map((feature, index) => (
                             <div
                                 key={index}
-                                className="border border-gray-200 rounded-3xl p-8 hover:shadow-lg transition"
+                                className="bg-white border border-gray-100 rounded-3xl p-8 shadow-md hover:shadow-2xl hover:-translate-y-3 hover:border-violet-300 transition-all duration-300 cursor-pointer"
                             >
                                 <div className="w-14 h-14 bg-violet-100 text-violet-600 rounded-xl flex items-center justify-center mb-5">
                                     {feature.icon}
@@ -332,32 +382,44 @@ export default function LandingPage() {
                         {[
                             {
                                 name: "Amazon",
+                                logo: "https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg",
                                 readiness: "68%",
                                 skills: "DSA, System Design, SQL",
                             },
                             {
                                 name: "Microsoft",
+                                logo: "https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg",
                                 readiness: "72%",
                                 skills: "DSA, OOPs, System Design",
                             },
                             {
                                 name: "Google",
+                                logo: "https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg",
                                 readiness: "65%",
                                 skills: "DSA, System Design, OS",
                             },
                             {
                                 name: "Adobe",
+                                logo: "https://upload.wikimedia.org/wikipedia/commons/7/7b/Adobe_Systems_logo_and_wordmark.svg",
                                 readiness: "60%",
                                 skills: "DSA, Frontend, System Design",
                             },
                         ].map((company, index) => (
                             <div
                                 key={index}
-                                className="border border-gray-200 rounded-3xl p-8 hover:shadow-lg transition"
+                                className="bg-white border border-gray-100 rounded-3xl p-8 shadow-md hover:shadow-2xl hover:-translate-y-3 hover:border-violet-300 transition-all duration-300 cursor-pointer"
                             >
-                                <h3 className="text-xl font-bold mb-3">
-                                    {company.name}
-                                </h3>
+                                <div className="flex items-center gap-3 mb-4">
+                                    <img
+                                        src={company.logo}
+                                        alt={company.name}
+                                        className="w-12 h-12 object-contain"
+                                    />
+
+                                    <h3 className="text-xl font-bold">
+                                        {company.name}
+                                    </h3>
+                                </div>
 
                                 <p className="font-medium mb-3">
                                     Readiness {company.readiness}
@@ -366,11 +428,6 @@ export default function LandingPage() {
                                 <p className="text-gray-600 text-sm mb-6">
                                     Top Skills: {company.skills}
                                 </p>
-
-                                <button className="text-violet-600 font-semibold flex items-center gap-2">
-                                    View
-                                    <ArrowRight size={18} />
-                                </button>
                             </div>
                         ))}
                     </div>
