@@ -9,13 +9,16 @@ exports.getLeetCodeStats = async (username) => {
     }
 
     const data = await response.json();
+    const acSubmissions = data.matchedUserStats?.acSubmissionNum || [];
+    const findCount = (diff) =>
+      acSubmissions.find((s) => s.difficulty === diff)?.count || 0;
 
     return {
       username,
-      totalSolved: data.totalSolved || 0,
-      easySolved: data.easySolved || 0,
-      mediumSolved: data.mediumSolved || 0,
-      hardSolved: data.hardSolved || 0,
+      totalSolved: data.totalSolved || findCount("All"),
+      easySolved: data.easySolved || findCount("Easy"),
+      mediumSolved: data.mediumSolved || findCount("Medium"),
+      hardSolved: data.hardSolved || findCount("Hard"),
       ranking: data.ranking || 0,
       reputation: data.reputation || 0,
     };

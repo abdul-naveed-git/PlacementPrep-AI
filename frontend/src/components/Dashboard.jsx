@@ -35,11 +35,12 @@ import ProfileTab from "./ProfileTab";
 import SettingsTab from "./SettingsTab";
 import SkillGapTab from "./SkillGapTab";
 
-export default function Dashboard({ user: initialUser, onLogout }) {
+export default function Dashboard({ user: initialUser, onUserLoaded, onLogout }) {
   const [user, setUser] = useState(initialUser);
   const [activeTab, setActiveTab] = useState("home");
   const [roadmap, setRoadmap] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loadingUser, setLoadingUser] = useState(!initialUser);
 
   // Search tab state
   const [searchQuery, setSearchQuery] = useState("");
@@ -59,7 +60,23 @@ export default function Dashboard({ user: initialUser, onLogout }) {
     }
   };
 
+  const fetchCurrentUser = async () => {
+    setLoadingUser(true);
+    try {
+      const data = await apiRequest("/api/user/profile");
+      setUser(data);
+      onUserLoaded?.(data);
+      localStorage.setItem("pf_fullName", data.fullName || "User Profile");
+    } catch (err) {
+      console.error("Failed to load current user:", err);
+      onLogout?.();
+    } finally {
+      setLoadingUser(false);
+    }
+  };
+
   useEffect(() => {
+    fetchCurrentUser();
     fetchUserRoadmap();
   }, []);
 
@@ -88,7 +105,7 @@ export default function Dashboard({ user: initialUser, onLogout }) {
   // Dynamically calculate our elite placement readiness index score
   const totalProblems = roadmap?.topics?.reduce((acc, t) => acc + (t.problems?.length || 0), 0) || 0;
   const completedProblems = roadmap?.topics?.reduce((acc, t) => acc + (t.problems?.filter(p => p.completed).length || 0), 0) || 0;
-  const leetcodeSolved = user?.leetcodeStats?.totalSolved || 842;
+  const leetcodeSolved = user?.leetcodeStats?.totalSolved ?? 0;
 
   // Let's weights: Leetcode solved items (up to 40%), Roadmap checklist solved tasks (up to 40%), Target specs filled (up to 20%)
   const leetcodeWeight = Math.min(40, Math.floor((leetcodeSolved / 400) * 40));
@@ -98,10 +115,10 @@ export default function Dashboard({ user: initialUser, onLogout }) {
       user?.targetCompanies?.length > 0
       ? 20
       : 12;
-  const readinessIndexPercent = Math.min(100, Math.max(10, leetcodeWeight + roadmapWeight + profileWeight));
+  const readinessIndexPercent = Math.min(100, Math.max(0, leetcodeWeight + roadmapWeight + profileWeight));
 
-  const localFullName = localStorage.getItem("pf_fullName") || "Arjun Verma";
-  const localLeetcodeUsername = user?.leetcodeUsername || "arjun_2003";
+  const localFullName = user?.fullName || localStorage.getItem("pf_fullName") || "User Profile";
+  const localLeetcodeUsername = user?.leetcodeUsername || "not-linked";
 
   const sidebarItems = [
     { id: "home", label: "Home", icon: Home },
@@ -109,6 +126,7 @@ export default function Dashboard({ user: initialUser, onLogout }) {
     { id: "company_prep", label: "Company Preparation", icon: Building2 },
     { id: "experiences", label: "Interview Experiences", icon: MessageSquare },
     { id: "progress", label: "Progress Center", icon: TrendingUp },
+    { id: "skill_gap", label: "Skill Gap", icon: Sparkles },
     { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
     { id: "profile", label: "Profile", icon: User },
     { id: "settings", label: "Settings", icon: Settings },
@@ -116,6 +134,11 @@ export default function Dashboard({ user: initialUser, onLogout }) {
 
   return (
     <div id="placementpilot_scaffold_shell" className="min-h-screen bg-[#f8fafc] text-slate-800 flex font-sans w-full">
+      {loadingUser && (
+        <div className="fixed inset-0 z-50 bg-white/70 backdrop-blur-sm flex items-center justify-center text-xs font-bold text-slate-500">
+          Loading your live profile...
+        </div>
+      )}
 
       {/* LEFT SIDEBAR - Desktop Mode */}
       <aside className="hidden lg:flex flex-col w-64 border-r border-slate-200 bg-white shrink-0 sticky top-0 h-screen z-30 justify-between p-6">
@@ -161,9 +184,7 @@ export default function Dashboard({ user: initialUser, onLogout }) {
         {/* Bottom logout component widget */}
         <div className="border-t border-slate-100 pt-5 space-y-2">
           <button
-            onClick={() => {
-              onLogout();
-            }}
+            onClick={() => onLogout?.()}
             className="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 text-xs font-bold transition-all flex items-center gap-3 cursor-pointer border border-transparent hover:border-red-100"
           >
             <LogOut className="h-4.5 w-4.5" />
@@ -231,9 +252,7 @@ export default function Dashboard({ user: initialUser, onLogout }) {
 
               <div className="border-t border-slate-100 pt-5">
                 <button
-                  onClick={() => {
-                    onLogout();
-                  }}
+                  onClick={() => onLogout?.()}
                   className="w-full py-2 px-3 rounded-lg bg-red-50 text-red-600 text-xs font-bold flex items-center justify-center gap-2"
                 >
                   <LogOut className="h-4 w-4" />
@@ -318,7 +337,10 @@ export default function Dashboard({ user: initialUser, onLogout }) {
                 <ExperienceHubTab userEmail={user?.email || ""} />
               )}
               {activeTab === "progress" && (
-                <ProgressCenterTab roadmap={roadmap} totalSolved={leetcodeSolved} />
+                <ProgressCenterTab roadmap={roadmap} totalSolved={leetcodeSolved} user={user} />
+              )}
+              {activeTab === "skill_gap" && (
+                <SkillGapTab totalSolved={leetcodeSolved} />
               )}
               {activeTab === "bookmarks" && (
                 <BookmarksTab />

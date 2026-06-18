@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const authMiddleware = require("../middleware/authMiddleware");
 const {
   getRoadmap,
 
@@ -15,6 +16,8 @@ const {
 
   togglePattern,
 } = require("../controller/roadmapController");
+router.use(authMiddleware);
+
 router.get("/", getRoadmap);
 
 router.post("/generate", generateRoadmap);

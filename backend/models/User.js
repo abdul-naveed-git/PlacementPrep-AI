@@ -42,6 +42,18 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    fullName: {
+      type: String,
+      default: "",
+    },
+    academicYear: {
+      type: String,
+      default: "",
+    },
+    department: {
+      type: String,
+      default: "",
+    },
     isVerified: {
       type: Boolean,
       default: false,

@@ -1,15 +1,21 @@
 const User = require("../models/User");
 const DSARoadmap = require("../models/DSARoadmap");
-const ai = require("../utils/geminiapi");
+const { generateJson } = require("../utils/geminiapi");
 
 const getRoadmap = async (req, res) => {
   try {
     const difficulty = req.query.difficulty || "Medium";
 
-    const roadmap = await DSARoadmap.findOne({
+    let roadmap = await DSARoadmap.findOne({
       userId: req.user.id,
       difficulty,
     });
+
+    if (!roadmap) {
+      roadmap = await DSARoadmap.findOne({
+        userId: req.user.id,
+      }).sort({ updatedAt: -1 });
+    }
 
     if (!roadmap) {
       return res.status(404).json({
@@ -95,6 +101,10 @@ const generateRoadmap = async (req, res) => {
     const targetCompanies = user.targetCompanies.join(", ");
 
     const weakTopics = user.weakTopics.join(", ");
+    const stats = user.leetcodeStats;
+    const leetcodeStatsInfo = stats
+      ? `${stats.totalSolved || 0} solved (${stats.easySolved || 0} easy, ${stats.mediumSolved || 0} medium, ${stats.hardSolved || 0} hard)`
+      : "No LeetCode stats connected yet";
 
     const prompt = `You are an expert tech team lead and DSA coach creating a personalized study roadmap for a student.
 Please generate a roadmap EXACTLY for difficulty level: "${difficulty}".
@@ -128,21 +138,17 @@ You must respond ONLY with a valid JSON array of topics matching this schema str
   }
 ]`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+    const topics = await generateJson(prompt);
 
-      contents: prompt,
-    });
-
-    let topics;
-
-    try {
-      topics = JSON.parse(response.text);
-    } catch {
-      return res.status(500).json({
-        error: "Gemini returned invalid JSON",
-      });
-    }
+    const normalizedTopics = topics.map((topic, topicIndex) => ({
+      ...topic,
+      problems: (topic.problems || []).map((problem, problemIndex) => ({
+        ...problem,
+        id: problem.id || `topic_${topicIndex + 1}_problem_${problemIndex + 1}`,
+        completed: Boolean(problem.completed),
+        topic: problem.topic || topic.topicName,
+      })),
+    }));
 
     const roadmap = await DSARoadmap.findOneAndUpdate(
       {
@@ -162,7 +168,7 @@ You must respond ONLY with a valid JSON array of topics matching this schema str
 
         targetCompanies: user.targetCompanies,
 
-        topics,
+        topics: normalizedTopics,
       },
 
       {
@@ -186,6 +192,8 @@ You must respond ONLY with a valid JSON array of topics matching this schema str
 const getRecommendedProblems = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
+    const targetCompanies = user.targetCompanies || [];
+    const weakTopics = user.weakTopics || [];
 
     if (user.recommendedProblems && user.recommendedProblems.length) {
       return res.json(user.recommendedProblems);
@@ -214,13 +222,7 @@ Response must be ONLY a valid JSON array of objects matches:
   }
 ]`;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-
-      contents: prompt,
-    });
-
-    const problems = JSON.parse(response.text);
+    const problems = await generateJson(prompt);
 
     user.recommendedProblems = problems;
 
@@ -252,6 +254,8 @@ const toggleRecommendedProblem = async (req, res) => {
 
 const getTopPatterns = async (req, res) => {
   const user = await User.findById(req.user.id);
+  const targetCompanies = user.targetCompanies || [];
+  const weakTopics = user.weakTopics || [];
 
   if (user.topPatterns && user.topPatterns.length) {
     return res.json(user.topPatterns);
@@ -284,13 +288,7 @@ Response must be ONLY a valid JSON array of objects matches:
   }
 ]`;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-
-    contents: prompt,
-  });
-
-  const patterns = JSON.parse(response.text);
+  const patterns = await generateJson(prompt);
 
   user.topPatterns = patterns;
 

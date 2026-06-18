@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   MessageSquare, 
@@ -49,122 +49,7 @@ export default function ExperienceHubTab({ userEmail }) {
   // Sorting state (default Popularity: upvotes)
   const [sortBy, setSortBy] = useState("upvotes");
 
-  // High-fidelity preseeded records to match Image 3 exactly!
-  const [experiences, setExperiences] = useState([
-    {
-      id: "exp-1",
-      company: "Amazon",
-      title: "Amazon SDE-1 Interview Experience",
-      author: "Rohan S.",
-      timeAgo: "3 days ago",
-      description: "Had a great experience overall. The interview process was smooth and the questions were quite relevant. Initial screening was focused on resume projects but subsequent rounds tested robust heap and binary search algorithms.",
-      role: "SDE-1",
-      rounds: "3 Rounds",
-      location: "Bangalore",
-      upvotes: 12,
-      comments: 4,
-      difficulty: "Medium",
-      commentsList: [
-        { id: "c-1-1", author: "Aman Gupta", text: "Did they ask any questions about leadership principles?", time: "2 days ago" },
-        { id: "c-1-2", author: "Rohan S.", text: "Yes, Aman. They focused on 'Customer Obsession' and 'Deliver Results' for about 15 minutes.", time: "1 day ago" },
-        { id: "c-1-3", author: "Sneha Nair", text: "Was heap required to be coded from scratch or could we use a library?", time: "12 hours ago" },
-        { id: "c-1-4", author: "Rohan S.", text: "Usually inside SDE-1 you can describe heapify conceptually and use standard language packages.", time: "4 hours ago" }
-      ]
-    },
-    {
-      id: "exp-2",
-      company: "Microsoft",
-      title: "Microsoft SDE-2 Interview Experience",
-      author: "Priya M.",
-      timeAgo: "1 week ago",
-      description: "Good experience overall. Focus more on DSA graph algorithms (Dijkstra, DFS grid patterns) and basic system design parameters including rate limiters and relational database sharding.",
-      role: "SDE-2",
-      rounds: "4 Rounds",
-      location: "Noida",
-      upvotes: 20,
-      comments: 4,
-      difficulty: "Hard",
-      commentsList: [
-        { id: "c-2-1", author: "Aniket Vyas", text: "Was there any system design round for caching?", time: "5 days ago" },
-        { id: "c-2-2", author: "Priya M.", text: "Yes, we spent 20 minutes designing an LRU eviction distributed cache.", time: "4 days ago" },
-        { id: "c-2-3", author: "Vikram S.", text: "Did they expect fully working code for Dijkstra's?", time: "2 days ago" },
-        { id: "c-2-4", author: "Priya M.", text: "Pseudocode was fine, but time complexity analysis had to be exactly O((V+E)logV).", time: "1 day ago" }
-      ]
-    },
-    {
-      id: "exp-3",
-      company: "Google",
-      title: "Google STEP Internship Experience",
-      author: "Karan T.",
-      timeAgo: "2 weeks ago",
-      description: "Amazing learning experience! Got a PPO. Focus heavily on competitive programming, recursive tree traversal, and solid computer science fundamentals.",
-      role: "Internship",
-      rounds: "2 Rounds",
-      location: "Bangalore",
-      upvotes: 15,
-      comments: 3,
-      difficulty: "Hard",
-      commentsList: [
-        { id: "c-3-1", author: "Harish S.", text: "How hard was the Step OA compared to Leetcode Medium?", time: "1 week ago" },
-        { id: "c-3-2", author: "Karan T.", text: "About equivalent, but Google prioritizes strict asymptotic runtime edge-cases.", time: "6 days ago" },
-        { id: "c-3-3", author: "Divya Paul", text: "Did they check code readability?", time: "3 days ago" }
-      ]
-    },
-    {
-      id: "exp-4",
-      company: "TCS",
-      title: "TCS Ninja Interview Experience",
-      author: "Amit R.",
-      timeAgo: "3 weeks ago",
-      description: "Easy on core coding questions, but you must focus on basic computer networks, OS scheduling, and DBMS index optimization fundamentals. HR round was conversational.",
-      role: "Ninja SDE",
-      rounds: "2 Rounds",
-      location: "Chennai",
-      upvotes: 8,
-      comments: 2,
-      difficulty: "Easy",
-      commentsList: [
-        { id: "c-4-1", author: "Rajesh S.", text: "What did they ask in the DBMS round?", time: "2 weeks ago" },
-        { id: "c-4-2", author: "Amit R.", text: "Basic SQL queries (joins, group by) and B-tree indexing concepts.", time: "1 week ago" }
-      ]
-    },
-    {
-      id: "exp-5",
-      company: "Adobe",
-      title: "Adobe Member of Technical Staff (MTS) Experience",
-      author: "Sanjana K.",
-      timeAgo: "1 month ago",
-      description: "First round had robust questions regarding Linked Lists, BST operations and memory layouts. Second round focused entirely on design patterns and object oriented programming paradigms.",
-      role: "MTS-1",
-      rounds: "3 Rounds",
-      location: "Noida",
-      upvotes: 14,
-      comments: 2,
-      difficulty: "Medium",
-      commentsList: [
-        { id: "c-5-1", author: "Anjali K.", text: "Which design patterns did they focus on?", time: "3 weeks ago" },
-        { id: "c-5-2", author: "Sanjana K.", text: "Singleton and Observer. Had to write basic class layouts.", time: "2 weeks ago" }
-      ]
-    },
-    {
-      id: "exp-6",
-      company: "Meta",
-      title: "Meta SDE-1 Interview Experience",
-      author: "Rahul S.",
-      timeAgo: "1 month ago",
-      description: "Meta interviews are speed runs. Focus heavily on speed, communication, and Meta-tagged LeetCode lists. Verify and test the optimization parameters of your recursive algorithms immediately.",
-      role: "SDE-1",
-      rounds: "2 Rounds",
-      location: "London",
-      upvotes: 31,
-      comments: 2,
-      difficulty: "Medium",
-      commentsList: [
-        { id: "c-6-1", author: "Tushar G.", text: "Is the speed requirement really that high?", time: "3 weeks ago" },
-        { id: "c-6-2", author: "Rahul S.", text: "Absolutely, had to write and test 2 recursion-heavy problems within 45 mins.", time: "2 weeks ago" }
-      ]
-    }
-  ]);
+  const [experiences, setExperiences] = useState([]);
 
   // Form states for sharing experience
   const [newCompany, setNewCompany] = useState("Amazon");
@@ -175,7 +60,36 @@ export default function ExperienceHubTab({ userEmail }) {
   const [newDescription, setNewDescription] = useState("");
   const [newDifficulty, setNewDifficulty] = useState("Medium");
 
-  const handleShareSubmit = (e) => {
+  useEffect(() => {
+    const loadExperiences = async () => {
+      try {
+        const data = await apiRequest("/api/experience");
+        setExperiences(data.map((experience) => ({
+          id: experience._id,
+          company: experience.company,
+          title: experience.title,
+          author: experience.authorEmail,
+          timeAgo: experience.createdAt
+            ? new Date(experience.createdAt).toLocaleDateString()
+            : "Recently",
+          description: experience.content,
+          role: experience.role,
+          rounds: "Shared",
+          location: "Not specified",
+          upvotes: experience.upvotes || 0,
+          comments: 0,
+          difficulty: experience.difficulty,
+          commentsList: [],
+        })));
+      } catch (err) {
+        console.error("Failed to load shared experiences:", err);
+      }
+    };
+
+    loadExperiences();
+  }, []);
+
+  const handleShareSubmit = async (e) => {
     e.preventDefault();
     if (!newTitle || !newDescription || !newRole) return;
 
@@ -206,14 +120,30 @@ export default function ExperienceHubTab({ userEmail }) {
     setNewDescription("");
     setNewDifficulty("Medium");
 
-    // Submit log
     try {
-      apiRequest("/api/experience/create", {
+      const saved = await apiRequest("/api/experience/create", {
         method: "POST",
-        body: JSON.stringify(added)
+        body: JSON.stringify({
+          company: newCompany,
+          role: newRole,
+          difficulty: newDifficulty,
+          title: newTitle,
+          content: newDescription,
+        })
       });
+      setExperiences((prev) =>
+        prev.map((experience) =>
+          experience.id === added.id
+            ? {
+                ...experience,
+                id: saved._id,
+                author: saved.authorEmail,
+              }
+            : experience,
+        ),
+      );
     } catch (e) {
-      console.warn("Backend dynamic database bypass logging.");
+      console.warn("Failed to persist shared experience:", e);
     }
   };
 
@@ -342,8 +272,8 @@ export default function ExperienceHubTab({ userEmail }) {
         return lenB - lenA;
       }
       if (sortBy === "recent") {
-        const scoreA = a.id.startsWith("exp-user-") ? parseFloat(a.id.replace("exp-user-", "")) : (100 - parseInt(a.id.replace("exp-", "") || "0"));
-        const scoreB = b.id.startsWith("exp-user-") ? parseFloat(b.id.replace("exp-user-", "")) : (100 - parseInt(b.id.replace("exp-", "") || "0"));
+        const scoreA = a.id.startsWith("exp-user-") ? parseFloat(a.id.replace("exp-user-", "")) : 0;
+        const scoreB = b.id.startsWith("exp-user-") ? parseFloat(b.id.replace("exp-user-", "")) : 0;
         return scoreB - scoreA;
       }
       if (sortBy === "difficulty") {

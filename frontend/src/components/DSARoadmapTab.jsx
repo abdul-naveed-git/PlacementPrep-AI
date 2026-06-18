@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   CheckCircle2,
@@ -22,6 +22,10 @@ import { apiRequest } from "../lib/api";
 export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) {
   const [activeSubTab, setActiveSubTab] = useState("roadmap");
   const [selectedTopicId, setSelectedTopicId] = useState(null);
+  const [recommendedProblems, setRecommendedProblems] = useState([]);
+  const [topPatterns, setTopPatterns] = useState([]);
+  const [subTabLoading, setSubTabLoading] = useState(false);
+  const [subTabError, setSubTabError] = useState(null);
 
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [generationError, setGenerationError] = useState(null);
@@ -55,142 +59,76 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
     localStorage.setItem("pf_bookmarked_problems", JSON.stringify(list));
   };
 
-  // High-fidelity preseeded topics to match Image 2 exactly!
-  const [topics, setTopics] = useState([
-    {
-      id: "arrays",
-      name: "Arrays",
-      status: "completed",
-      description: "Learn and practice problems revolving on arrays.",
-      problems: [
-        { id: "arr-1", title: "Best Time to Buy and Sell Stock", difficulty: "Easy", completed: true, topic: "Arrays" },
-        { id: "arr-2", title: "Contains Duplicate", difficulty: "Easy", completed: true, topic: "Arrays" },
-        { id: "arr-3", title: "Product of Array Except Self", difficulty: "Medium", completed: true, topic: "Arrays" },
-        { id: "arr-4", title: "Maximum Subarray", difficulty: "Medium", completed: true, topic: "Arrays" },
-        { id: "arr-5", title: "Find Minimum in Rotated Sorted Array", difficulty: "Medium", completed: true, topic: "Arrays" },
-        { id: "arr-6", title: "3 Sum", difficulty: "Medium", completed: true, topic: "Arrays" },
-        { id: "arr-7", title: "Trapping Rain Water", difficulty: "Hard", completed: true, topic: "Arrays" },
-        { id: "arr-8", title: "Maximum Product Subarray", difficulty: "Hard", completed: true, topic: "Arrays" }
-      ]
-    },
-    {
-      id: "strings",
-      name: "Strings",
-      status: "completed",
-      description: "Master string matching algorithms, manipulations, and frequency maps.",
-      problems: [
-        { id: "str-1", title: "Valid Anagram", difficulty: "Easy", completed: true, topic: "Strings" },
-        { id: "str-2", title: "Valid Palindrome", difficulty: "Easy", completed: true, topic: "Strings" },
-        { id: "str-3", title: "Longest Substring Without Repeating Characters", difficulty: "Medium", completed: true, topic: "Strings" },
-        { id: "str-4", title: "Longest Repeating Character Replacement", difficulty: "Medium", completed: true, topic: "Strings" }
-      ]
-    },
-    {
-      id: "twopointers",
-      name: "Two Pointers",
-      status: "completed",
-      description: "Solve linear scanning problems efficiently using dual runners.",
-      problems: [
-        { id: "tp-1", title: "Two Sum II - Input Array Is Sorted", difficulty: "Medium", completed: true, topic: "Two Pointers" },
-        { id: "tp-2", title: "Container With Most Water", difficulty: "Medium", completed: true, topic: "Two Pointers" }
-      ]
-    },
-    {
-      id: "stackqueue",
-      name: "Stack & Queue",
-      status: "completed",
-      description: "Solve nested parsing, monotonic tracking, and FIFO buffers.",
-      problems: [
-        { id: "sq-1", title: "Valid Parentheses", difficulty: "Easy", completed: true, topic: "Stack & Queue" },
-        { id: "sq-2", title: "Min Stack", difficulty: "Medium", completed: true, topic: "Stack & Queue" }
-      ]
-    },
-    {
-      id: "dp",
-      name: "Dynamic Programming",
-      status: "in-progress",
-      progressPercent: 68,
-      description: "Unravel recursive memoization and bottom-up SDE dynamic programming equations.",
-      problems: [
-        { id: "dp-1", title: "Climbing Stairs", difficulty: "Easy", completed: true, topic: "Dynamic Programming" },
-        { id: "dp-2", title: "Min Cost Climbing Stairs", difficulty: "Easy", completed: true, topic: "Dynamic Programming" },
-        { id: "dp-3", title: "House Robber", difficulty: "Medium", completed: true, topic: "Dynamic Programming" },
-        { id: "dp-4", title: "House Robber II", difficulty: "Medium", completed: true, topic: "Dynamic Programming" },
-        { id: "dp-5", title: "Longest Palindromic Substring", difficulty: "Medium", completed: false, topic: "Dynamic Programming" },
-        { id: "dp-6", title: "Coin Change", difficulty: "Medium", completed: false, topic: "Dynamic Programming" },
-        { id: "dp-7", title: "Longest Common Subsequence", difficulty: "Medium", completed: false, topic: "Dynamic Programming" }
-      ]
-    },
-    {
-      id: "graphs",
-      name: "Graphs",
-      status: "locked",
-      description: "Traverse spatial relations via BFS, DFS, Dijkstra, and MST Kruskal algorithms.",
-      problems: [
-        { id: "gr-1", title: "Number of Islands", difficulty: "Medium", completed: false, topic: "Graphs" },
-        { id: "gr-2", title: "Clone Graph", difficulty: "Medium", completed: false, topic: "Graphs" },
-        { id: "gr-3", title: "Course Schedule", difficulty: "Medium", completed: false, topic: "Graphs" }
-      ]
-    },
-    {
-      id: "tree",
-      name: "Tree",
-      status: "locked",
-      description: "Deconstruct hierarchic recursion, binary tree pathways, and BST rules.",
-      problems: [
-        { id: "tr-1", title: "Invert Binary Tree", difficulty: "Easy", completed: false, topic: "Tree" },
-        { id: "tr-2", title: "Maximum Depth of Binary Tree", difficulty: "Easy", completed: false, topic: "Tree" },
-        { id: "tr-3", title: "Binary Tree Maximum Path Sum", difficulty: "Hard", completed: false, topic: "Tree" }
-      ]
-    },
-    {
-      id: "trie",
-      name: "Trie",
-      status: "locked",
-      description: "Manipulate localized alphabetic search directories and prefix parameters.",
-      problems: [
-        { id: "tri-1", title: "Implement Trie (Prefix Tree)", difficulty: "Medium", completed: false, topic: "Trie" },
-        { id: "tri-2", title: "Design Add and Search Words Data Structure", difficulty: "Medium", completed: false, topic: "Trie" }
-      ]
+  const [topics, setTopics] = useState([]);
+
+  const mapRoadmapTopics = (roadmapData) => {
+    if (!roadmapData?.topics?.length) {
+      return [];
     }
-  ]);
 
-  // Sync state with prop
-  React.useEffect(() => {
-    if (roadmap && roadmap.topics && roadmap.topics.length > 0) {
-      const mapped = roadmap.topics.map((t, index) => {
-        const mappedProblems = t.problems.map((p, pIdx) => ({
-          id: p.id || `prob-${index}-${pIdx}`,
-          title: p.title,
-          difficulty: p.difficulty || "Easy",
-          completed: p.completed || false,
-          topic: p.topic || t.topicName
-        }));
+    return roadmapData.topics.map((t, index) => {
+      const mappedProblems = t.problems.map((p, pIdx) => ({
+        id: p.id || `prob-${index}-${pIdx}`,
+        title: p.title,
+        url: p.url || "https://leetcode.com/",
+        difficulty: p.difficulty || "Easy",
+        completed: p.completed || false,
+        topic: p.topic || t.topicName,
+      }));
 
-        let mappedStatus = "in-progress";
-        const total = mappedProblems.length;
-        const solved = mappedProblems.filter(p => p.completed).length;
+      const total = mappedProblems.length;
+      const solved = mappedProblems.filter((p) => p.completed).length;
+      const previousTopicCompleted =
+        index === 0 ||
+        roadmapData.topics[index - 1].problems?.every((p) => p.completed);
+      let mappedStatus = "in-progress";
 
-        if (total > 0 && solved === total) {
-          mappedStatus = "completed";
-        } else if (solved > 0) {
-          mappedStatus = "in-progress";
-        } else if (index > 0 && roadmap.topics[index - 1].problems?.every((p) => p.completed) === false) {
-          mappedStatus = "locked";
-        }
+      if (!previousTopicCompleted) {
+        mappedStatus = "locked";
+      } else if (total > 0 && solved === total) {
+        mappedStatus = "completed";
+      } else if (solved > 0) {
+        mappedStatus = "in-progress";
+      }
 
-        return {
-          id: `topic-${index}`,
-          name: t.topicName,
-          status: mappedStatus,
-          description: `Custom deep dive SDE curriculum module targeted for your profiles and companies.`,
-          progressPercent: total > 0 ? Math.round((solved / total) * 100) : 0,
-          problems: mappedProblems
-        };
-      });
-      setTopics(mapped);
-    }
+      return {
+        id: `topic-${index}`,
+        name: t.topicName,
+        status: mappedStatus,
+        description: `Custom deep dive SDE curriculum module targeted for your profile and companies.`,
+        progressPercent: total > 0 ? Math.round((solved / total) * 100) : 0,
+        problems: mappedProblems,
+      };
+    });
+  };
+
+  useEffect(() => {
+    setTopics(mapRoadmapTopics(roadmap));
   }, [roadmap]);
+
+  useEffect(() => {
+    const fetchSubTabData = async () => {
+      if (activeSubTab === "roadmap") return;
+
+      setSubTabLoading(true);
+      setSubTabError(null);
+      try {
+        if (activeSubTab === "recommended") {
+          const data = await apiRequest("/api/roadmap/recommended");
+          setRecommendedProblems(data);
+        } else if (activeSubTab === "patterns") {
+          const data = await apiRequest("/api/roadmap/patterns");
+          setTopPatterns(data);
+        }
+      } catch (err) {
+        setSubTabError(err?.message || "Failed to load AI recommendations.");
+      } finally {
+        setSubTabLoading(false);
+      }
+    };
+
+    fetchSubTabData();
+  }, [activeSubTab]);
 
   const handleGenerateAILoadmap = async () => {
     setIsGeneratingRoadmap(true);
@@ -211,6 +149,10 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
 
   // Toggle problem status locally with backend proxy sync
   const toggleProblemCompleted = async (topicId, problemId) => {
+    const topic = topics.find((item) => item.id === topicId);
+    const problem = topic?.problems.find((item) => item.id === problemId);
+    const nextCompleted = !problem?.completed;
+
     setTopics(prevTopics =>
       prevTopics.map(t => {
         if (t.id === topicId) {
@@ -230,7 +172,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
             } else if (solvedPr > 0) {
               newStatus = "in-progress";
             } else {
-              newStatus = "completed"; // fallback
+              newStatus = "in-progress";
             }
           }
           const finalPercent = totalPr > 0 ? Math.round((solvedPr / totalPr) * 100) : 0;
@@ -238,7 +180,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
             ...t,
             problems: updatedProblems,
             status: newStatus,
-            progressPercent: t.status === "in-progress" ? finalPercent : t.progressPercent
+            progressPercent: finalPercent
           };
         }
         return t;
@@ -247,35 +189,91 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
 
     // Call server to persist if connected
     try {
-      await apiRequest("/api/roadmap/problem/toggle", {
+      const updatedRoadmap = await apiRequest("/api/roadmap/problem/toggle", {
         method: "POST",
-        body: JSON.stringify({ problemId, completed: true })
+        body: JSON.stringify({ problemId, completed: nextCompleted })
       });
+      onRoadmapUpdate?.(updatedRoadmap);
     } catch (e) {
       console.warn("Backend state stored sync bypass.");
     }
   };
 
   // Turn active topic completed/not completed
-  const toggleTopicStatus = (topicId) => {
-    setTopics(prevTopics =>
-      prevTopics.map(t => {
-        if (t.id === topicId) {
-          const targetStatus = t.status === "completed" ? "in-progress" : "completed";
-          const targetProblems = t.problems.map(p => ({
-            ...p,
-            completed: targetStatus === "completed"
-          }));
-          return {
-            ...t,
-            status: targetStatus,
-            problems: targetProblems,
-            progressPercent: targetStatus === "in-progress" ? 50 : undefined
-          };
-        }
-        return t;
-      })
+  const toggleTopicStatus = async (topicId) => {
+    const topic = topics.find((item) => item.id === topicId);
+    if (!topic || topic.status === "locked") return;
+
+    const nextCompleted = topic.status !== "completed";
+    let latestRoadmap = null;
+
+    setTopics((prevTopics) =>
+      prevTopics.map((item) =>
+        item.id === topicId
+          ? {
+              ...item,
+              status: nextCompleted ? "completed" : "in-progress",
+              progressPercent: nextCompleted ? 100 : 0,
+              problems: item.problems.map((problem) => ({
+                ...problem,
+                completed: nextCompleted,
+              })),
+            }
+          : item,
+      ),
     );
+
+    try {
+      for (const problem of topic.problems) {
+        latestRoadmap = await apiRequest("/api/roadmap/problem/toggle", {
+          method: "POST",
+          body: JSON.stringify({ problemId: problem.id, completed: nextCompleted }),
+        });
+      }
+
+      if (latestRoadmap) {
+        onRoadmapUpdate?.(latestRoadmap);
+      }
+    } catch (err) {
+      console.warn("Failed to persist topic completion:", err);
+      setTopics(mapRoadmapTopics(roadmap));
+    }
+  };
+
+  const toggleRecommendedProblem = async (problemId, completed) => {
+    setRecommendedProblems((prev) =>
+      prev.map((problem) =>
+        problem.id === problemId ? { ...problem, completed } : problem,
+      ),
+    );
+
+    try {
+      const data = await apiRequest("/api/roadmap/recommended/toggle", {
+        method: "POST",
+        body: JSON.stringify({ problemId, completed }),
+      });
+      setRecommendedProblems(data);
+    } catch (err) {
+      setSubTabError(err?.message || "Failed to update recommended problem.");
+    }
+  };
+
+  const togglePattern = async (patternId, mastered) => {
+    setTopPatterns((prev) =>
+      prev.map((pattern) =>
+        pattern.id === patternId ? { ...pattern, mastered } : pattern,
+      ),
+    );
+
+    try {
+      const data = await apiRequest("/api/roadmap/patterns/toggle", {
+        method: "POST",
+        body: JSON.stringify({ patternId, mastered }),
+      });
+      setTopPatterns(data);
+    } catch (err) {
+      setSubTabError(err?.message || "Failed to update pattern.");
+    }
   };
 
   // Find the currently selected topic details
@@ -354,6 +352,26 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
                     {/* Vertical connect line */}
                     <div className="absolute top-4 bottom-4 left-[15px] w-0.5 bg-slate-200" />
 
+                    {topics.length === 0 && (
+                      <div className="p-6 rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center space-y-3">
+                        <p className="text-xs text-slate-500">
+                          No live roadmap topics found yet. Generate a personalized roadmap to start tracking progress.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleGenerateAILoadmap}
+                          disabled={isGeneratingRoadmap}
+                          className="px-5 py-3 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:bg-slate-300 text-xs font-bold text-white transition-all inline-flex items-center justify-center gap-2"
+                        >
+                          <Sparkles className="h-4 w-4" />
+                          <span>{isGeneratingRoadmap ? "Generating..." : "Generate AI Roadmap"}</span>
+                        </button>
+                        {generationError && (
+                          <p className="text-xs text-red-500">{generationError}</p>
+                        )}
+                      </div>
+                    )}
+
                     {topics.map((topic, index) => {
                       const isCompleted = topic.status === "completed";
                       const isInProgress = topic.status === "in-progress";
@@ -425,10 +443,84 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
                 </div>
               </div>
             ) : (
-              <div className="p-8 rounded-3xl bg-white border border-slate-250 text-center text-slate-400 min-h-[300px] flex flex-col items-center justify-center space-y-3">
-                <Compass className="h-10 w-10 text-slate-350 animate-spin" />
-                <h4 className="font-extrabold text-sm text-slate-755">Compiling algorithmic variables...</h4>
-                <p className="text-xs text-slate-400 max-w-sm">Please select active roadmap directory items to start tracking recommended challenges.</p>
+              <div className="space-y-4 max-w-4xl">
+                {subTabLoading && (
+                  <div className="p-8 rounded-3xl bg-white border border-slate-200 text-center text-slate-400">
+                    <Compass className="h-10 w-10 text-slate-350 animate-spin mx-auto mb-3" />
+                    <p className="text-xs font-bold">Loading AI recommendations...</p>
+                  </div>
+                )}
+
+                {subTabError && (
+                  <div className="p-4 rounded-xl border border-red-100 bg-red-50 text-xs font-bold text-red-600">
+                    {subTabError}
+                  </div>
+                )}
+
+                {!subTabLoading && activeSubTab === "recommended" && (
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {recommendedProblems.map((problem) => (
+                      <div key={problem.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <a href={problem.url} target="_blank" rel="noreferrer" className="font-black text-sm text-slate-900 hover:text-indigo-600">
+                              {problem.title}
+                            </a>
+                            <p className="text-[11px] text-slate-500 mt-1">{problem.topic} - {problem.difficulty}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => toggleRecommendedProblem(problem.id, !problem.completed)}
+                            className={`w-7 h-7 rounded-full border flex items-center justify-center ${
+                              problem.completed
+                                ? "bg-emerald-500 border-emerald-500 text-white"
+                                : "bg-white border-slate-200 text-slate-300"
+                            }`}
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">{problem.rationale}</p>
+                      </div>
+                    ))}
+                    {recommendedProblems.length === 0 && (
+                      <div className="md:col-span-2 p-8 rounded-3xl bg-white border border-slate-200 text-center text-xs text-slate-400">
+                        No recommended problems yet.
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {!subTabLoading && activeSubTab === "patterns" && (
+                  <div className="grid md:grid-cols-3 gap-4">
+                    {topPatterns.map((pattern) => (
+                      <div key={pattern.id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="font-black text-sm text-slate-900">{pattern.patternName}</h3>
+                          <button
+                            type="button"
+                            onClick={() => togglePattern(pattern.id, !pattern.mastered)}
+                            className={`w-7 h-7 rounded-full border flex items-center justify-center ${
+                              pattern.mastered
+                                ? "bg-emerald-500 border-emerald-500 text-white"
+                                : "bg-white border-slate-200 text-slate-300"
+                            }`}
+                          >
+                            <Check className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-600 leading-relaxed">{pattern.description}</p>
+                        <p className="text-[11px] font-bold text-indigo-600">{pattern.keyInsight}</p>
+                        <p className="text-[10px] text-slate-400 font-mono">Sample: {pattern.sampleProblem}</p>
+                      </div>
+                    ))}
+                    {topPatterns.length === 0 && (
+                      <div className="md:col-span-3 p-8 rounded-3xl bg-white border border-slate-200 text-center text-xs text-slate-400">
+                        No top patterns yet.
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 

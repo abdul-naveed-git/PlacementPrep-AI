@@ -19,25 +19,51 @@ exports.getuser = async (req, res) => {
   }
 };
 exports.postuser = async (req, res) => {
-  const { leetcodeUsername, targetCompanies, targetRole, weakTopics } =
-    req.body;
+  try {
+    const {
+      leetcodeUsername,
+      targetCompanies,
+      targetRole,
+      weakTopics,
+      fullName,
+      academicYear,
+      department,
+    } = req.body;
 
-  const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id);
 
-  if (!user) {
-    return res.status(404).json({
-      error: "User not found",
-    });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const isUsernameChanged =
+      leetcodeUsername !== undefined && leetcodeUsername !== user.leetcodeUsername;
+
+    user.leetcodeUsername =
+      leetcodeUsername !== undefined ? leetcodeUsername : user.leetcodeUsername;
+    user.targetCompanies =
+      targetCompanies !== undefined ? targetCompanies : user.targetCompanies;
+    user.targetRole = targetRole !== undefined ? targetRole : user.targetRole;
+    user.weakTopics = weakTopics !== undefined ? weakTopics : user.weakTopics;
+    user.fullName = fullName !== undefined ? fullName : user.fullName;
+    user.academicYear =
+      academicYear !== undefined ? academicYear : user.academicYear;
+    user.department = department !== undefined ? department : user.department;
+
+    if (isUsernameChanged && leetcodeUsername) {
+      const stats = await getLeetCodeStats(leetcodeUsername);
+      if (stats) {
+        user.leetcodeStats = stats;
+      }
+    } else if (isUsernameChanged) {
+      user.leetcodeStats = undefined;
+    }
+
+    await user.save();
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-
-  user.leetcodeUsername = leetcodeUsername || user.leetcodeUsername;
-  user.targetCompanies = targetCompanies || user.targetCompanies;
-  user.targetRole = targetRole || user.targetRole;
-  user.weakTopics = weakTopics || user.weakTopics;
-
-  await user.save();
-
-  res.json(user);
 };
 
 exports.leetcodesync = async (req, res) => {
