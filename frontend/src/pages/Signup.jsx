@@ -100,7 +100,7 @@ export default function Signup({ onLoginSuccess }) {
       });
 
       if (onLoginSuccess) {
-        onLoginSuccess(res.user, res.token);
+        onLoginSuccess(res.user);
       }
 
       navigate("/dashboard");
@@ -130,7 +130,7 @@ export default function Signup({ onLoginSuccess }) {
       });
 
       if (onLoginSuccess) {
-        onLoginSuccess(res.user, res.token);
+        onLoginSuccess(res.user);
       }
 
       navigate("/dashboard");

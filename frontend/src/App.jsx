@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import LandingPage from "./components/LandingPage";
@@ -7,18 +7,56 @@ import Dashboard from "./components/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import VerifyOtp from "./pages/VerifyOtp";
 import ResetPassword from "./pages/ResetPassword";
-import { authResponseSchema, getFirstZodErrorMessage } from "./lib/validation";
+import NotFound from "./pages/NotFound";
+import { authUserSchema, getFirstZodErrorMessage } from "./lib/validation";
+import { apiRequest } from "./lib/api";
 
 function App() {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem("pf_token"));
+  const [authReady, setAuthReady] = useState(false);
   const [appError, setAppError] = useState(null);
 
-  const handleLoginSuccess = (loggedInUser, authToken) => {
-    const parsed = authResponseSchema.safeParse({
-      user: loggedInUser,
-      token: authToken,
-    });
+  useEffect(() => {
+    let active = true;
+
+    const loadSession = async () => {
+      try {
+        const currentUser = await apiRequest("/api/user/profile");
+        if (!active) return;
+
+        const parsed = authUserSchema.safeParse(currentUser);
+        if (!parsed.success) {
+          setAppError(
+            getFirstZodErrorMessage(
+              parsed.error,
+              "Received an invalid authentication response.",
+            ),
+          );
+          setUser(null);
+        } else {
+          setUser(parsed.data);
+          localStorage.setItem(
+            "pf_fullName",
+            parsed.data.fullName || "User Profile",
+          );
+        }
+      } catch (error) {
+        if (error.status !== 401) {
+          setAppError(error.message || "Failed to load your session.");
+        }
+      } finally {
+        if (active) setAuthReady(true);
+      }
+    };
+
+    loadSession();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const handleLoginSuccess = (loggedInUser) => {
+    const parsed = authUserSchema.safeParse(loggedInUser);
 
     if (!parsed.success) {
       const message = getFirstZodErrorMessage(
@@ -26,24 +64,27 @@ function App() {
         "Received an invalid authentication response.",
       );
       setAppError(message);
-      localStorage.removeItem("pf_token");
       return;
     }
 
     setAppError(null);
-    localStorage.setItem("pf_token", parsed.data.token);
-    localStorage.setItem(
-      "pf_fullName",
-      parsed.data.user.fullName || "User Profile",
-    );
-    setUser(parsed.data.user);
-    setToken(parsed.data.token);
+    localStorage.setItem("pf_fullName", parsed.data.fullName || "User Profile");
+    setUser(parsed.data);
+    setAuthReady(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("pf_token");
+  const handleLogout = async () => {
+    try {
+      await apiRequest("/api/auth/logout", { method: "POST" });
+    } catch (error) {
+      console.error("Logout request failed:", error);
+    }
+
+    localStorage.removeItem("pf_fullName");
+    localStorage.removeItem("pf_year");
+    localStorage.removeItem("pf_dept");
     setUser(null);
-    setToken(null);
+    setAuthReady(true);
   };
 
   return (
@@ -53,45 +94,53 @@ function App() {
           {appError}
         </div>
       )}
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route
-          path="/login"
-          element={<Signup onLoginSuccess={handleLoginSuccess} />}
-        />
-        <Route
-          path="/signup"
-          element={<Signup onLoginSuccess={handleLoginSuccess} />}
-        />
-        <Route
-          path="/dashboard"
-          element={
-            token ? (
-              <Dashboard
-                user={user}
-                onUserLoaded={setUser}
-                onLogout={handleLogout}
-              />
-            ) : (
-              <Navigate to="/login" replace />
-            )
-          }
-        />
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
-
-        <Route
-          path="/verify-otp"
-          element={<VerifyOtp />}
-        />
-
-        <Route
-          path="/reset-password"
-          element={<ResetPassword />}
-        />
-      </Routes>
+      {!authReady ? (
+        <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">
+          Restoring session...
+        </div>
+      ) : (
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route
+            path="/login"
+            element={
+              user ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Signup onLoginSuccess={handleLoginSuccess} />
+              )
+            }
+          />
+          <Route
+            path="/signup"
+            element={
+              user ? (
+                <Navigate to="/dashboard" replace />
+              ) : (
+                <Signup onLoginSuccess={handleLoginSuccess} />
+              )
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              user ? (
+                <Dashboard
+                  user={user}
+                  onUserLoaded={setUser}
+                  onLogout={handleLogout}
+                />
+              ) : (
+                <Navigate to="/login" replace />
+              )
+            }
+          />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      )}
     </BrowserRouter>
   );
 }

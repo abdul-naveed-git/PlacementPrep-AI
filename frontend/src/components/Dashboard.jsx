@@ -20,7 +20,7 @@ import {
   Sparkles,
   Bot,
   Terminal,
-  Volume2
+  Volume2,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 
@@ -34,7 +34,11 @@ import BookmarksTab from "./BookmarksTab";
 import ProfileTab from "./ProfileTab";
 import SkillGapTab from "./SkillGapTab";
 
-export default function Dashboard({ user: initialUser, onUserLoaded, onLogout }) {
+export default function Dashboard({
+  user: initialUser,
+  onUserLoaded,
+  onLogout,
+}) {
   const [user, setUser] = useState(initialUser);
   const [activeTab, setActiveTab] = useState("home");
   const [roadmap, setRoadmap] = useState(null);
@@ -85,7 +89,7 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
     try {
       const updatedUser = await apiRequest("/api/user/profile", {
         method: "POST",
-        body: JSON.stringify(updatedParams)
+        body: JSON.stringify(updatedParams),
       });
       setUser(updatedUser);
       setProfileSuccess(true);
@@ -102,21 +106,31 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
   };
 
   // Dynamically calculate our elite placement readiness index score
-  const totalProblems = roadmap?.topics?.reduce((acc, t) => acc + (t.problems?.length || 0), 0) || 0;
-  const completedProblems = roadmap?.topics?.reduce((acc, t) => acc + (t.problems?.filter(p => p.completed).length || 0), 0) || 0;
+  const totalProblems =
+    roadmap?.topics?.reduce((acc, t) => acc + (t.problems?.length || 0), 0) ||
+    0;
+  const completedProblems =
+    roadmap?.topics?.reduce(
+      (acc, t) => acc + (t.problems?.filter((p) => p.completed).length || 0),
+      0,
+    ) || 0;
   const leetcodeSolved = user?.leetcodeStats?.totalSolved ?? 0;
 
   // Let's weights: Leetcode solved items (up to 40%), Roadmap checklist solved tasks (up to 40%), Target specs filled (up to 20%)
   const leetcodeWeight = Math.min(40, Math.floor((leetcodeSolved / 400) * 40));
-  const roadmapWeight = totalProblems > 0 ? Math.min(40, Math.round((completedProblems / totalProblems) * 40)) : 0;
+  const roadmapWeight =
+    totalProblems > 0
+      ? Math.min(40, Math.round((completedProblems / totalProblems) * 40))
+      : 0;
   const profileWeight =
-    user?.leetcodeUsername &&
-      user?.targetCompanies?.length > 0
-      ? 20
-      : 12;
-  const readinessIndexPercent = Math.min(100, Math.max(0, leetcodeWeight + roadmapWeight + profileWeight));
+    user?.leetcodeUsername && user?.targetCompanies?.length > 0 ? 20 : 12;
+  const readinessIndexPercent = Math.min(
+    100,
+    Math.max(0, leetcodeWeight + roadmapWeight + profileWeight),
+  );
 
-  const localFullName = user?.fullName || localStorage.getItem("pf_fullName") || "User Profile";
+  const localFullName =
+    user?.fullName || localStorage.getItem("pf_fullName") || "User Profile";
   const localLeetcodeUsername = user?.leetcodeUsername || "not-linked";
 
   const sidebarItems = [
@@ -131,8 +145,10 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
   ];
 
   return (
-    <div id="placementpilot_scaffold_shell"
-      className="relative min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-blue-50/30 text-slate-800 flex font-sans w-full overflow-hidden">
+    <div
+      id="placementpilot_scaffold_shell"
+      className="relative min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-blue-50/30 text-slate-800 flex font-sans w-full overflow-hidden"
+    >
       <div className="pointer-events-none absolute top-20 left-40 w-72 h-72 bg-violet-500/10 blur-[120px] rounded-full"></div>
 
       <div className="pointer-events-none absolute bottom-10 right-10 w-80 h-80 bg-blue-500/10 blur-[120px] rounded-full"></div>
@@ -140,7 +156,6 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
       {/* LEFT SIDEBAR - Desktop Mode - Changed to fixed positioning */}
       <aside className="hidden lg:flex flex-col w-64 bg-white/70 backdrop-blur-xl border-r border-white/40 shadow-xl shadow-violet-500/5 shrink-0 fixed top-0 left-0 h-screen z-30 justify-between p-6">
         <div className="space-y-6">
-
           {/* Brand Identity / Logo */}
           <div className="flex items-center gap-2.5">
             <div className="p-2.5 rounded-xl bg-violet-600 text-white shadow-md shadow-violet-500/10">
@@ -162,12 +177,15 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full px-3.5 py-3 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-3 cursor-pointer group ${isSelected
-                    ? "bg-gradient-to-r from-violet-500/10 to-blue-500/10 border-l-4 border-violet-600 text-violet-700 shadow-md"
-                    : "text-slate-500 hover:text-slate-900 hover:bg-white/70 hover:translate-x-1"
-                    }`}
+                  className={`w-full px-3.5 py-3 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-3 cursor-pointer group ${
+                    isSelected
+                      ? "bg-gradient-to-r from-violet-500/10 to-blue-500/10 border-l-4 border-violet-600 text-violet-700 shadow-md"
+                      : "text-slate-500 hover:text-slate-900 hover:bg-white/70 hover:translate-x-1"
+                  }`}
                 >
-                  <Icon className={`h-4.5 w-4.5 transition-all duration-300 group-hover:scale-110 ${isSelected ? "text-violet-600" : "text-slate-400 group-hover:text-slate-700"}`} />
+                  <Icon
+                    className={`h-4.5 w-4.5 transition-all duration-300 group-hover:scale-110 ${isSelected ? "text-violet-600" : "text-slate-400 group-hover:text-slate-700"}`}
+                  />
                   <span>{item.label}</span>
                 </button>
               );
@@ -190,15 +208,23 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
       {/* MOBILE BAR AND NAVIGATION DROPDOWN */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-1 px-2.5 rounded-lg bg-violet-600 font-extrabold text-white text-xs block font-display">P</div>
-          <span className="font-extrabold text-sm tracking-tight text-slate-900 font-display">PlacementPilot AI</span>
+          <div className="p-1 px-2.5 rounded-lg bg-violet-600 font-extrabold text-white text-xs block font-display">
+            P
+          </div>
+          <span className="font-extrabold text-sm tracking-tight text-slate-900 font-display">
+            PlacementPilot AI
+          </span>
         </div>
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className="p-2 bg-slate-550/5 hover:bg-slate-550/10 rounded-lg text-slate-550"
         >
-          {sidebarOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          {sidebarOpen ? (
+            <X className="h-4 w-4" />
+          ) : (
+            <Menu className="h-4 w-4" />
+          )}
         </button>
       </div>
 
@@ -233,8 +259,11 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
                           setActiveTab(item.id);
                           setSidebarOpen(false);
                         }}
-                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 ${isSelected ? "bg-violet-50 text-violet-600 font-black" : "text-slate-500 hover:bg-slate-50"
-                          }`}
+                        className={`w-full px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-3 ${
+                          isSelected
+                            ? "bg-violet-50 text-violet-600 font-black"
+                            : "text-slate-500 hover:bg-slate-50"
+                        }`}
                       >
                         <Icon className="h-4 w-4" />
                         <span>{item.label}</span>
@@ -261,7 +290,6 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
       {/* MAIN CONTAINER AREA - Added margin-left to account for fixed sidebar */}
       <main className="flex-1 min-w-0 pt-16 lg:pt-0 bg-[#f8fafc] min-h-screen lg:ml-64">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-
           {/* HEADER ROW - EXACTLY MATCHING SECOND SCREENSHOT */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 pb-5 border-b border-white/40">
             <div>
@@ -274,21 +302,25 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
             </div>
 
             <div className="flex items-center gap-4 self-end sm:self-auto">
-
               {/* User profile info dropdown widget matching mockup */}
-              <div className="flex items-center gap-3 pl-3 border-l border-slate-200 h-10"><div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-md hover:shadow-violet-500/10 hover:scale-[1.02] transition-all duration-300">
-                <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-violet-100 overflow-hidden shrink-0 shadow-md">
-                  <img
-                    src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150&auto=format&fit=crop"
-                    alt="Arjun Verma Avatar"
-                    className="w-full h-full object-cover"
-                  />
+              <div className="flex items-center gap-3 pl-3 border-l border-slate-200 h-10">
+                <div className="flex items-center gap-3 px-3 py-2 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-md hover:shadow-violet-500/10 hover:scale-[1.02] transition-all duration-300">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 border-2 border-violet-100 overflow-hidden shrink-0 shadow-md">
+                    <img
+                      src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=150&auto=format&fit=crop"
+                      alt="Arjun Verma Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="hidden md:block text-left leading-tight">
+                    <span className="font-bold text-xs text-slate-900 block">
+                      {localFullName}
+                    </span>
+                    <span className="text-[10px] text-slate-450 font-mono block">
+                      @{localLeetcodeUsername}
+                    </span>
+                  </div>
                 </div>
-                <div className="hidden md:block text-left leading-tight">
-                  <span className="font-bold text-xs text-slate-900 block">{localFullName}</span>
-                  <span className="text-[10px] text-slate-450 font-mono block">@{localLeetcodeUsername}</span>
-                </div>
-              </div>
               </div>
             </div>
           </div>
@@ -317,20 +349,24 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
                 />
               )}
               {activeTab === "company_prep" && (
-                <CompanyPrepTab initialCompanies={user?.targetCompanies || []} />
+                <CompanyPrepTab
+                  initialCompanies={user?.targetCompanies || []}
+                />
               )}
               {activeTab === "experiences" && (
                 <ExperienceHubTab userEmail={user?.email || ""} />
               )}
               {activeTab === "progress" && (
-                <ProgressCenterTab roadmap={roadmap} totalSolved={leetcodeSolved} user={user} />
+                <ProgressCenterTab
+                  roadmap={roadmap}
+                  totalSolved={leetcodeSolved}
+                  user={user}
+                />
               )}
               {activeTab === "skill_gap" && (
                 <SkillGapTab totalSolved={leetcodeSolved} />
               )}
-              {activeTab === "bookmarks" && (
-                <BookmarksTab />
-              )}
+              {activeTab === "bookmarks" && <BookmarksTab />}
               {activeTab === "profile" && (
                 <ProfileTab
                   user={user}
@@ -339,15 +375,11 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
                   profileSuccess={profileSuccess}
                 />
               )}
-              {activeTab === "settings" && (
-                <SettingsTab />
-              )}
+              {activeTab === "settings" && <SettingsTab />}
             </motion.div>
           </AnimatePresence>
-
         </div>
       </main>
-
     </div>
   );
 }

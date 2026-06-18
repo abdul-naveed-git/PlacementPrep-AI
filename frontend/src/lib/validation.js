@@ -56,14 +56,11 @@ export const resetPasswordSchema = z
     message: "Passwords do not match.",
   });
 
-export const authResponseSchema = z.object({
-  user: z
-    .object({
-      email: emailSchema,
-    })
-    .passthrough(),
-  token: z.string().min(1, "Authentication token is required."),
-});
+export const authUserSchema = z
+  .object({
+    email: emailSchema,
+  })
+  .passthrough();
 
 export const getFirstZodErrorMessage = (error, fallback) =>
   error?.issues?.[0]?.message || fallback;

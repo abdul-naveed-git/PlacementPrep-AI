@@ -1,12 +1,29 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { AUTH_COOKIE_NAME } = require("../utils/authCookies");
+
+const readCookie = (cookieHeader, name) => {
+  if (!cookieHeader) {
+    return null;
+  }
+
+  const cookies = cookieHeader.split(";").map((entry) => entry.trim());
+  const match = cookies.find((entry) => entry.startsWith(`${name}=`));
+  if (!match) {
+    return null;
+  }
+
+  return decodeURIComponent(match.slice(name.length + 1));
+};
 
 const authMiddleware = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization || "";
-    const token = authHeader.startsWith("Bearer ")
+    const bearerToken = authHeader.startsWith("Bearer ")
       ? authHeader.slice(7)
       : null;
+    const cookieToken = readCookie(req.headers.cookie, AUTH_COOKIE_NAME);
+    const token = cookieToken || bearerToken;
 
     if (!token) {
       return res.status(401).json({ error: "Authentication token required" });

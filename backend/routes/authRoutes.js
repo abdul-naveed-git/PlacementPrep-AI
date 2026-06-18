@@ -9,6 +9,7 @@ const {
   forgotPassword,
   verifyResetOtp,
   resetPassword,
+  logout,
 } = require("../controller/authController");
 router.post("/register", validateRequest(authRequestSchemas.register), Register);
 router.post("/verify", validateRequest(authRequestSchemas.verify), Verify);
@@ -28,4 +29,5 @@ router.post(
   validateRequest(authRequestSchemas.resetPassword),
   resetPassword,
 );
+router.post("/logout", logout);
 module.exports = router;

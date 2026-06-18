@@ -5,6 +5,23 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET;
 const { sendOTPEmail, sendWelcomeEmail } = require("../utils/mail");
+const { setAuthCookie, clearAuthCookie } = require("../utils/authCookies");
+
+const sanitizeUser = (user) => {
+  if (!user) return null;
+  const plainUser = user.toObject ? user.toObject() : { ...user };
+  delete plainUser.password;
+  return plainUser;
+};
+
+const issueSession = (res, user) => {
+  const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+  setAuthCookie(res, token);
+  return token;
+};
+
 exports.Register = async (req, res) => {
   try {
     const { email } = req.body;
@@ -102,12 +119,9 @@ exports.Verify = async (req, res) => {
       await user.save();
       await sendWelcomeEmail(email);
     }
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
+    issueSession(res, user);
     res.json({
-      user,
-      token,
+      user: sanitizeUser(user),
     });
   } catch (err) {
     res.status(500).json({
@@ -125,7 +139,7 @@ exports.login = async (req, res) => {
         .json({ error: "Email and password are required fields." });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
       return res
         .status(401)
@@ -139,11 +153,8 @@ exports.login = async (req, res) => {
         .json({ error: "Invalid email or password credentials." });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
-      expiresIn: "7d",
-    });
-
-    res.json({ user, token });
+    issueSession(res, user);
+    res.json({ user: sanitizeUser(user) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -240,6 +251,19 @@ exports.resetPassword = async (req, res) => {
 
     res.json({
       message: "Password updated successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: err.message,
+    });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    clearAuthCookie(res);
+    res.json({
+      message: "Logged out successfully",
     });
   } catch (err) {
     res.status(500).json({

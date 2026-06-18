@@ -1,10 +1,8 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 export async function apiRequest(endpoint, options = {}) {
-  const token = localStorage.getItem("pf_token");
   const headers = {
     "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(options.headers || {}),
   };
 
@@ -13,6 +11,7 @@ export async function apiRequest(endpoint, options = {}) {
     response = await fetch(`${API_BASE}${endpoint}`, {
       ...options,
       headers,
+      credentials: "include",
     });
   } catch (networkError) {
     throw new Error(
