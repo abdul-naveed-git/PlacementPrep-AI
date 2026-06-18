@@ -400,25 +400,25 @@ export default function LandingPage() {
             {[
               {
                 name: "Amazon",
-                logo: "/public/amazon.webp",
+                logo: "/amazon.webp",
                 readiness: "68%",
                 skills: "DSA, System Design, SQL",
               },
               {
                 name: "Microsoft",
-                logo: "/public/microsoft.jpeg",
+                logo: "/microsoft.jpeg",
                 readiness: "72%",
                 skills: "DSA, OOPs, System Design",
               },
               {
                 name: "Google",
-                logo: "/public/google.jpeg",
+                logo: "/google.jpeg",
                 readiness: "65%",
                 skills: "DSA, System Design, OS",
               },
               {
                 name: "Adobe",
-                logo: "/public/adobe.jpeg",
+                logo: "/adobe.jpeg",
                 readiness: "60%",
                 skills: "DSA, Frontend, System Design",
               },
