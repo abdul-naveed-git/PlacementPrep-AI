@@ -459,7 +459,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
   };
 
   return (
-    <div id="dsa_roadmap_master_container" className="space-y-6">
+    <div id="dsa_roadmap_master_container" className="relative isolate space-y-6">
 
       <AnimatePresence mode="wait">
         {!selectedTopicId ? (
@@ -550,9 +550,9 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
                   <div className="relative pl-8 space-y-5">
 
                     {/* Vertical connect line with animated progress */}
-                    <div className="absolute top-4 bottom-4 left-[15px] w-0.5 bg-slate-200" />
+                    <div className="pointer-events-none absolute top-4 bottom-4 left-[15px] w-0.5 bg-slate-200" />
                     <motion.div
-                      className="absolute top-4 left-[15px] w-0.5 bg-indigo-600 origin-top"
+                      className="pointer-events-none absolute top-4 left-[15px] w-0.5 bg-indigo-600 origin-top"
                       initial={{ scaleY: 0 }}
                       animate={{ scaleY: 1 }}
                       transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
@@ -574,7 +574,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
                             }
                           }}
                           className={`group relative flex items-center justify-between p-4.5 rounded-2xl border transition-all cursor-pointer ${isLocked
-                            ? "bg-slate-50/50 border-slate-100 opacity-60 pointer-events-none"
+                            ? "bg-slate-50/50 border-slate-100 opacity-60 cursor-not-allowed"
                             : "bg-white border-slate-200 hover:border-indigo-300 hover:shadow-md hover:shadow-indigo-500/[0.02]"
                             }`}
                           initial={{ opacity: 0, x: -20 }}
@@ -639,7 +639,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
 
                           {/* Progress bar for in-progress items */}
                           {isInProgress && (
-                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-100 rounded-b-2xl overflow-hidden">
+                            <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-1 bg-slate-100 rounded-b-2xl overflow-hidden">
                               <motion.div
                                 className="h-full bg-indigo-600 rounded-b-2xl"
                                 initial={{ width: 0 }}
@@ -654,7 +654,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
 
                     {/* Animated end dot */}
                     <motion.div
-                      className="absolute left-[15px] -bottom-6 transform -translate-x-1/2"
+                      className="pointer-events-none absolute left-[15px] -bottom-6 transform -translate-x-1/2"
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.4, delay: topics.length * 0.08 + 0.3, type: "spring" }}
@@ -800,12 +800,13 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
             className="space-y-6"
           >
             {/* Nav and completions toggle block */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="relative z-20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               {/* BREADCRUMB BARS */}
               <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
                 <button
+                  type="button"
                   onClick={() => setSelectedTopicId(null)}
-                  className="hover:text-indigo-600 transition-colors cursor-pointer select-none"
+                  className="-m-2 rounded-lg p-2 hover:text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 transition-colors cursor-pointer select-none"
                 >
                   DSA Roadmap
                 </button>
@@ -822,6 +823,7 @@ export default function DSARoadmapTab({ roadmap, onRoadmapUpdate, weakTopics }) 
 
               {/* MARK AS COMPLETED BUTTON */}
               <motion.button
+                type="button"
                 onClick={() => activeTopic && toggleTopicStatus(activeTopic.id)}
                 className="px-4 py-2 border border-slate-200 hover:border-indigo-300 hover:bg-slate-50 rounded-xl text-xs font-bold text-slate-600 transition-all flex items-center gap-2 cursor-pointer"
                 whileHover={{ scale: 1.02 }}

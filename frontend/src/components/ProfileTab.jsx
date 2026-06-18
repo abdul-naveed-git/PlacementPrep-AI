@@ -21,6 +21,16 @@ const PRESET_COMPANIES = [
   "Stripe",
   "Airbnb",
   "Tesla",
+  "Salesforce",
+  "Adobe",
+  "Nvidia",
+  "Intel",
+  "Twitter",
+  "LinkedIn",
+  "Snapchat",
+  "Pinterest",
+  "Spotify",
+  "Dropbox",
 ];
 
 export default function ProfileTab({
@@ -46,6 +56,8 @@ export default function ProfileTab({
     user?.targetCompanies || [],
   );
 
+  const [companySearch, setCompanySearch] = useState("");
+
   const [targetRole, setTargetRole] = useState(
     user?.targetRole || "Software Development Engineer (SDE)",
   );
@@ -66,6 +78,12 @@ export default function ProfileTab({
   }, [user]);
 
   const avatarUrl = `https://api.dicebear.com/7.x/bottts/svg?seed=${fullName || user?.email || "User"}`;
+
+  const filteredCompanies = PRESET_COMPANIES.filter(
+    (company) =>
+      company.toLowerCase().includes(companySearch.toLowerCase()) &&
+      !selectedCompanies.includes(company),
+  );
 
   const handleToggleCompany = (company) => {
     setSelectedCompanies((prev) =>
@@ -105,11 +123,17 @@ export default function ProfileTab({
   };
 
   return (
-    <div id="student_integrated_profile_view" className="space-y-6">
+    <motion.div
+      id="student_integrated_profile_view"
+      className="space-y-6"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       {/* Upper header segment resembling Page 8 screenshot */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-slate-900 to-[#0c122c] border border-white/5 flex flex-col md:flex-row gap-6 items-center">
+      <div className="p-6 rounded-3xl bg-white border border-violet-100 shadow-lg hover:shadow-violet-200/50 transition-all duration-500 flex flex-col md:flex-row gap-6 items-center">
         <div className="relative">
-          <div className="w-20 h-20 rounded-2xl bg-slate-950 border border-violet-500/30 flex items-center justify-center p-2.5 overflow-hidden">
+          <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-violet-100 to-purple-50 border border-violet-200 flex items-center justify-center p-2.5 overflow-hidden shadow-md">
             <img
               src={avatarUrl}
               alt="Profile Avatar"
@@ -123,7 +147,7 @@ export default function ProfileTab({
         </div>
 
         <div className="text-center md:text-left space-y-1">
-          <h2 className="text-xl font-black text-white font-display">
+          <h2 className="text-2xl font-black text-slate-800 font-display">
             {fullName}
           </h2>
           <p className="text-xs text-slate-400 font-mono flex items-center justify-center md:justify-start gap-1.5">
@@ -133,7 +157,7 @@ export default function ProfileTab({
             </span>
           </p>
           <div className="flex flex-wrap gap-1.5 justify-center md:justify-start pt-1.5">
-            <span className="text-[10px] bg-white/5 px-2.5 py-0.5 rounded text-slate-300 border border-white/5 font-bold">
+            <span className="text-[10px] bg-violet-100 px-3 py-1 rounded-full text-violet-700 border border-violet-200 font-bold">
               {targetRole}
             </span>
             {user?.leetcodeUsername && (
@@ -148,8 +172,8 @@ export default function ProfileTab({
       {/* Forms Section */}
       <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6">
         {/* Academic and Core parameters */}
-        <div className="p-6 rounded-xl bg-slate-900 border border-white/5 space-y-4">
-          <h3 className="font-extrabold text-xs text-white uppercase tracking-wider border-b border-white/5 pb-2">
+        <div className="p-6 rounded-3xl bg-white border border-violet-100 shadow-lg hover:shadow-violet-200/50 hover:-translate-y-1 transition-all duration-500 space-y-4">
+          <h3 className="font-extrabold text-xs text-slate-800 uppercase">
             Academic Information
           </h3>
 
@@ -162,7 +186,7 @@ export default function ProfileTab({
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-white/5 rounded-lg text-xs focus:outline-none focus:border-violet-500 text-slate-200"
+                className="w-full px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg text-xs focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-300 transition-all text-slate-800"
               />
             </div>
 
@@ -174,7 +198,7 @@ export default function ProfileTab({
                 <select
                   value={academicYear}
                   onChange={(e) => setAcademicYear(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-white/5 rounded-lg text-xs text-slate-350 focus:outline-none focus:border-violet-500"
+                  className="w-full px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg text-xs text-slate-800 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-300 transition-all"
                 >
                   <option value="1st Year">1st Year Scholar</option>
                   <option value="2nd Year">2nd Year Scholar</option>
@@ -191,7 +215,7 @@ export default function ProfileTab({
                   type="text"
                   value={department}
                   onChange={(e) => setDepartment(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-950 border border-white/5 rounded-lg text-xs focus:outline-none focus:border-violet-500 text-slate-200"
+                  className="w-full px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg text-xs focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-300 transition-all text-slate-800"
                 />
               </div>
             </div>
@@ -205,7 +229,7 @@ export default function ProfileTab({
                 value={leetcodeUsername}
                 onChange={(e) => setLeetcodeUsername(e.target.value)}
                 placeholder="e.g. dsajunkie"
-                className="w-full px-3 py-2 bg-slate-950 border border-white/5 rounded-lg text-xs focus:outline-none focus:border-violet-500 text-slate-200"
+                className="w-full px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg text-xs focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-300 transition-all text-slate-800"
               />
             </div>
 
@@ -216,7 +240,7 @@ export default function ProfileTab({
               <select
                 value={targetRole}
                 onChange={(e) => setTargetRole(e.target.value)}
-                className="w-full px-3 py-2 bg-slate-950 border border-white/5 rounded-lg text-xs focus:outline-none focus:border-violet-500 text-slate-350"
+                className="w-full px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg text-xs focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-300 transition-all text-slate-800"
               >
                 <option value="Software Development Engineer (SDE)">
                   Software Engineering (SDE-1)
@@ -236,8 +260,8 @@ export default function ProfileTab({
         </div>
 
         {/* Targets: Corporations & Weak Topics tagger */}
-        <div className="p-6 rounded-xl bg-slate-900 border border-white/5 space-y-4">
-          <h3 className="font-extrabold text-xs text-white uppercase tracking-wider border-b border-white/5 pb-2">
+        <div className="p-6 rounded-3xl bg-white border border-violet-100 shadow-lg hover:shadow-violet-200/50 hover:-translate-y-1 transition-all duration-500 space-y-4">
+          <h3 className="font-extrabold text-xs text-slate-800 uppercase">
             Placement Focus Targets
           </h3>
 
@@ -250,24 +274,66 @@ export default function ProfileTab({
                   ({selectedCompanies.length} selected)
                 </span>
               </label>
-              <div className="grid grid-cols-2 gap-1.5 max-h-[140px] overflow-y-auto pr-1">
-                {PRESET_COMPANIES.map((company) => {
-                  const isSelected = selectedCompanies.includes(company);
-                  return (
-                    <button
+              <div className="space-y-3">
+
+                <input
+                  type="text"
+                  value={companySearch}
+                  onChange={(e) => setCompanySearch(e.target.value)}
+                  placeholder="Search company..."
+                  className="w-full px-4 py-3 bg-violet-50 border border-violet-200 rounded-xl text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-400"
+                />
+
+                {companySearch && filteredCompanies.length > 0 && (
+                  <div className="bg-white border border-violet-100 rounded-xl shadow-md max-h-40 overflow-y-auto">
+
+                    {filteredCompanies.map((company) => (
+                      <button
+                        key={company}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCompanies((prev) => [...prev, company]);
+                          setCompanySearch("");
+                        }}
+                        className="w-full text-left px-4 py-2 hover:bg-violet-50 transition text-slate-700"
+                      >
+                        {company}
+                      </button>
+                    ))}
+
+                  </div>
+                )}
+
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-500 mb-2 uppercase">
+                  Selected Companies
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {selectedCompanies.map((company) => (
+                    <motion.div
                       key={company}
-                      type="button"
-                      onClick={() => handleToggleCompany(company)}
-                      className={`py-1.5 rounded-lg text-[10px] font-bold border transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                        isSelected
-                          ? "bg-violet-600/20 border-violet-500 text-white"
-                          : "bg-slate-950 border-white/5 text-slate-500 hover:border-slate-800"
-                      }`}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="px-3 py-2 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 text-white text-xs font-semibold flex items-center gap-2 shadow-md"
                     >
                       {company}
-                    </button>
-                  );
-                })}
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedCompanies((prev) =>
+                            prev.filter((c) => c !== company)
+                          )
+                        }
+                        className="hover:text-red-200"
+                      >
+                        ✕
+                      </button>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -282,7 +348,7 @@ export default function ProfileTab({
                   value={manualWeakness}
                   onChange={(e) => setManualWeakness(e.target.value)}
                   placeholder="e.g. Dynamic Programming, Trees"
-                  className="flex-1 px-3 py-1.5 bg-slate-950 border border-white/5 rounded-lg text-xs focus:outline-none focus:border-violet-500 text-slate-200"
+                  className="flex-1 px-3 py-1.5 bg-violet-50 border border-violet-100 rounded-lg text-xs focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-300 transition -all text-slate-800"
                 />
                 <button
                   type="button"
@@ -297,7 +363,7 @@ export default function ProfileTab({
                 {weakTopics.map((topic) => (
                   <span
                     key={topic}
-                    className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-950 text-slate-405 border border-white/5 flex items-center gap-1 bg-slate-950 text-slate-300"
+                    className="text-[10px] font-mono px-3 py-1 rounded-full bg-violet-100 text-violet-700 border border-violet-200 flex items-center gap-1"
                   >
                     <span>{topic}</span>
                     <button
@@ -328,7 +394,7 @@ export default function ProfileTab({
           <button
             type="submit"
             disabled={savingProfile}
-            className="px-6 py-3 rounded-xl text-xs font-black bg-white hover:bg-slate-100 text-slate-950 flex items-center gap-2 cursor-pointer text-slate-900 border border-none shadow-lg active:scale-95 transition-all"
+            className="px-8 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-lg hover:shadow-violet-300 hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2"
           >
             <Save className="h-4 w-4 text-slate-900" />
             <span>
@@ -337,6 +403,6 @@ export default function ProfileTab({
           </button>
         </div>
       </form>
-    </div>
+    </motion.div>
   );
 }

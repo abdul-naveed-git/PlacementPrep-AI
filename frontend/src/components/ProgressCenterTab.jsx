@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  Tooltip, 
-  ResponsiveContainer 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer
 } from "recharts";
-import { 
-  Award, 
-  CheckCircle2, 
-  TrendingUp, 
-  BookOpen, 
-  Target, 
-  Flame, 
+import {
+  Award,
+  CheckCircle2,
+  TrendingUp,
+  BookOpen,
+  Target,
+  Flame,
   Calendar,
   Sparkles,
   Search,
@@ -93,11 +93,11 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
 
   return (
     <div id="progress_center_dashboard_view" className="space-y-6 relative">
-      
+
       {/* SUCCESS CONFETTI EFFECT OVERLAY */}
       <AnimatePresence>
         {showConfetti && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -108,16 +108,15 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
                 <motion.div
                   key={i}
                   initial={{ y: -50, x: 0, opacity: 1, scale: Math.random() * 0.8 + 0.4 }}
-                  animate={{ 
-                    y: window.innerHeight * 0.7, 
-                    x: (Math.random() - 0.5) * 300, 
+                  animate={{
+                    y: window.innerHeight * 0.7,
+                    x: (Math.random() - 0.5) * 300,
                     rotate: 360,
-                    opacity: 0 
+                    opacity: 0
                   }}
                   transition={{ duration: 2.5, ease: "easeOut", delay: Math.random() * 0.8 }}
-                  className={`w-3.5 h-3.5 rounded-full ${
-                    i % 3 === 0 ? "bg-amber-400" : i % 3 === 1 ? "bg-violet-500" : "bg-emerald-400"
-                  }`}
+                  className={`w-3.5 h-3.5 rounded-full ${i % 3 === 0 ? "bg-amber-400" : i % 3 === 1 ? "bg-violet-500" : "bg-emerald-400"
+                    }`}
                 />
               ))}
             </div>
@@ -136,60 +135,8 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
 
       {/* CORE PROGRESS METRICS CARDS ROW (BENTO-STYLE) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* HERO CARD A: DAILY CODING STREAK */}
-        <div id="coding_streak_widget_card" className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between min-h-[190px] relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-extrabold block">Daily Coding Streak</span>
-              <div className="p-1.5 rounded-lg bg-orange-100 text-orange-600 animate-pulse">
-                <Flame className="h-4.5 w-4.5 fill-orange-500 stroke-orange-500" />
-              </div>
-            </div>
 
-            <div className="flex items-baseline gap-1">
-              <span className="text-4xl font-mono font-black text-slate-900 tracking-tight">{streak}</span>
-              <span className="text-xs font-bold text-orange-600 uppercase tracking-widest">Days Active</span>
-            </div>
 
-            {/* Continuous Weekdays grid tracker */}
-            <div className="grid grid-cols-7 gap-1.5 pt-1">
-              {weekdays.map((day, i) => (
-                <div key={i} className="text-center space-y-1">
-                  <span className="text-[9px] font-bold text-slate-400 font-mono block select-none">
-                    {day.name}
-                  </span>
-                  <div 
-                    className={`h-6 rounded-md flex items-center justify-center font-mono text-[9px] font-black border transition-all ${
-                      day.status === "completed"
-                        ? "bg-emerald-500 border-emerald-600 text-white shadow-sm shadow-emerald-500/20"
-                        : day.status === "active"
-                        ? "bg-orange-50 border-orange-200 text-orange-600 animate-pulse"
-                        : "bg-slate-50 border-slate-150 text-slate-300"
-                    }`}
-                  >
-                    {day.status === "completed" ? "✔" : "●"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-4.5">
-            <button
-              onClick={handleClaimCheckIn}
-              disabled={hasCheckedInToday}
-              className={`w-full py-2 px-3 rounded-xl text-xs font-extrabold transition-all outline-none flex items-center justify-center gap-1.5 cursor-pointer ${
-                hasCheckedInToday 
-                  ? "bg-slate-100 text-slate-400 border border-slate-200/50 cursor-not-allowed" 
-                  : "bg-orange-500 hover:bg-orange-600 text-white shadow-md shadow-orange-500/10"
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5 text-white" />
-              <span>{hasCheckedInToday ? "Checked in Today!" : "Secure Today's Check-in"}</span>
-            </button>
-          </div>
-        </div>
 
         {/* HERO CARD B: PROBLEMS SOLVED */}
         <div id="problems_solved_widget_card" className="p-5 rounded-3xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between min-h-[190px] hover:shadow-md transition-all">
@@ -301,7 +248,7 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
 
       {/* CHARTS & DETAILED ROADMAP TOPIC PROGRESS GRID */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
-        
+
         {/* LEFT COLUMN: TREND PROGRESS CHART (8 cols) */}
         <div className="lg:col-span-7 p-5 sm:p-6 rounded-3xl bg-white border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -319,13 +266,13 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
               <AreaChart data={trendData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorConfRate" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="day" stroke="#94a3b8" tickLine={false} />
                 <YAxis stroke="#94a3b8" tickLine={false} domain={[0, 100]} />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ backgroundColor: "#ffffff", borderColor: "rgba(226,232,240,0.8)", borderRadius: "12px", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.05)" }}
                 />
                 <Area type="monotone" name="Readiness Score" dataKey="rate" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorConfRate)" />
@@ -358,12 +305,11 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
 
                   <div className="flex items-center gap-2">
                     <div className="flex-1 bg-slate-200 h-2 rounded-full overflow-hidden">
-                      <div 
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          percent === 100 ? "bg-emerald-500" :
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${percent === 100 ? "bg-emerald-500" :
                           percent > 0 ? "bg-indigo-600" : "bg-slate-300"
-                        }`} 
-                        style={{ width: `${percent}%` }} 
+                          }`}
+                        style={{ width: `${percent}%` }}
                       />
                     </div>
                     <span className="font-mono text-[10px] text-slate-600 font-black shrink-0 w-8 text-right">
@@ -373,8 +319,8 @@ export default function ProgressCenterTab({ roadmap, totalSolved, user }) {
                 </div>
               );
             }) || (
-              <p className="text-xs text-slate-500 text-center py-6">No topics available in current roadmap layout.</p>
-            )}
+                <p className="text-xs text-slate-500 text-center py-6">No topics available in current roadmap layout.</p>
+              )}
           </div>
         </div>
 

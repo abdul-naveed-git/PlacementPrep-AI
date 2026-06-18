@@ -1,28 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { 
-  MessageSquare, 
-  Heart, 
-  Search, 
-  Plus, 
-  MapPin, 
-  Calendar,
-  Building2,
-  X,
-  Send,
-  User,
-  Filter,
-  Users,
-  CheckCircle,
-  Briefcase,
-  Sparkles,
-  Bot,
-  HelpCircle,
-  TrendingUp,
-  ArrowUpDown,
-  SlidersHorizontal,
-  Check,
-  Loader2
+import {
+  MessageSquare, Heart, Search, Plus, MapPin, Building2, X, Send,
+  Users, CheckCircle, Briefcase, Sparkles, Bot, HelpCircle, TrendingUp,
+  SlidersHorizontal, Filter, Loader2, ArrowRight
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
 
@@ -30,35 +11,30 @@ export default function ExperienceHubTab({ userEmail }) {
   const [selectedCompanyFilter, setSelectedCompanyFilter] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  
-  // Comments expansion state
   const [expandedCommentsId, setExpandedCommentsId] = useState(null);
-  // key: experience id -> comment text
   const [newCommentTexts, setNewCommentTexts] = useState({});
-  
-  // AI summarization status per experience id
-  // commentsSummaries keyed by experience id. Shape: { coreQuestions: [], takeaways: [], prepFocus: [] }
   const [commentsSummaries, setCommentsSummaries] = useState({});
   const [aiLoadingStates, setAiLoadingStates] = useState({});
-
-  // Group AI Summarization states
   const [groupSummary, setGroupSummary] = useState(null);
   const [groupSummaryLoading, setGroupSummaryLoading] = useState(false);
   const [groupSummaryError, setGroupSummaryError] = useState(null);
-
-  // Sorting state (default Popularity: upvotes)
   const [sortBy, setSortBy] = useState("upvotes");
-
   const [experiences, setExperiences] = useState([]);
 
-  // Form states for sharing experience
-  const [newCompany, setNewCompany] = useState("Amazon");
-  const [newTitle, setNewTitle] = useState("");
-  const [newRole, setNewRole] = useState("");
-  const [newRounds, setNewRounds] = useState("3 Rounds");
-  const [newLocation, setNewLocation] = useState("");
-  const [newDescription, setNewDescription] = useState("");
-  const [newDifficulty, setNewDifficulty] = useState("Medium");
+  // Share Experience Form States
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [workExperience, setWorkExperience] = useState("0-1 years");
+  const [currentRole, setCurrentRole] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [aboutYourself, setAboutYourself] = useState("");
+  const [company, setCompany] = useState("Amazon");
+  const [location, setLocation] = useState("");
+  const [title, setTitle] = useState("");
+  const [role, setRole] = useState("");
+  const [rounds, setRounds] = useState("3 Rounds");
+  const [difficulty, setDifficulty] = useState("Medium");
+  const [description, setDescription] = useState("");
 
   useEffect(() => {
     const loadExperiences = async () => {
@@ -69,9 +45,7 @@ export default function ExperienceHubTab({ userEmail }) {
           company: experience.company,
           title: experience.title,
           author: experience.authorEmail,
-          timeAgo: experience.createdAt
-            ? new Date(experience.createdAt).toLocaleDateString()
-            : "Recently",
+          timeAgo: experience.createdAt ? new Date(experience.createdAt).toLocaleDateString() : "Recently",
           description: experience.content,
           role: experience.role,
           rounds: "Shared",
@@ -85,69 +59,67 @@ export default function ExperienceHubTab({ userEmail }) {
         console.error("Failed to load shared experiences:", err);
       }
     };
-
     loadExperiences();
   }, []);
 
   const handleShareSubmit = async (e) => {
     e.preventDefault();
-    if (!newTitle || !newDescription || !newRole) return;
+    if (!title || !description || !role || !fullName || !email) return;
 
     const added = {
       id: `exp-user-${Date.now()}`,
-      company: newCompany,
-      title: newTitle,
-      author: localStorage.getItem("pf_fullName") || "You",
+      company: company,
+      title: title,
+      author: fullName,
       timeAgo: "Just now",
-      description: newDescription,
-      role: newRole,
-      rounds: newRounds,
-      location: newLocation || "Remote",
+      description: description,
+      role: role,
+      rounds: rounds,
+      location: location || "Remote",
       upvotes: 1,
       comments: 0,
-      difficulty: newDifficulty,
-      commentsList: []
+      difficulty: difficulty,
+      commentsList: [],
     };
 
     setExperiences([added, ...experiences]);
     setIsShareModalOpen(false);
-
     // Reset fields
-    setNewTitle("");
-    setNewRole("");
-    setNewRounds("3 Rounds");
-    setNewLocation("");
-    setNewDescription("");
-    setNewDifficulty("Medium");
+    setFullName("");
+    setEmail("");
+    setWorkExperience("0-1 years");
+    setCurrentRole("");
+    setLinkedinUrl("");
+    setAboutYourself("");
+    setCompany("Amazon");
+    setLocation("");
+    setTitle("");
+    setRole("");
+    setRounds("3 Rounds");
+    setDifficulty("Medium");
+    setDescription("");
 
     try {
       const saved = await apiRequest("/api/experience/create", {
         method: "POST",
         body: JSON.stringify({
-          company: newCompany,
-          role: newRole,
-          difficulty: newDifficulty,
-          title: newTitle,
-          content: newDescription,
+          company: company,
+          role: role,
+          difficulty: difficulty,
+          title: title,
+          content: description,
         })
       });
       setExperiences((prev) =>
         prev.map((experience) =>
-          experience.id === added.id
-            ? {
-                ...experience,
-                id: saved._id,
-                author: saved.authorEmail,
-              }
-            : experience,
-        ),
+          experience.id === added.id ? { ...experience, id: saved._id, author: saved.authorEmail } : experience
+        )
       );
     } catch (e) {
       console.warn("Failed to persist shared experience:", e);
     }
   };
 
-  // Group Reviews Collective Summarizer
   const handleAIGroupSummary = async (targetExperiences) => {
     if (targetExperiences.length === 0) return;
     setGroupSummaryLoading(true);
@@ -177,53 +149,35 @@ export default function ExperienceHubTab({ userEmail }) {
     }
   };
 
-  // Submit a new discussion comment
   const handleAddComment = (expId) => {
     const text = newCommentTexts[expId]?.trim();
     if (!text) return;
 
     const loggedUser = localStorage.getItem("pf_fullName") || "Arjun Verma";
-
     setExperiences(prev =>
       prev.map(exp => {
         if (exp.id === expId) {
           const currentList = exp.commentsList || [];
-          const newComment = {
-            id: `c-added-${Date.now()}`,
-            author: loggedUser,
-            text,
-            time: "Just now"
-          };
-          return {
-            ...exp,
-            comments: exp.comments + 1,
-            commentsList: [...currentList, newComment]
-          };
+          const newComment = { id: `c-added-${Date.now()}`, author: loggedUser, text, time: "Just now" };
+          return { ...exp, comments: exp.comments + 1, commentsList: [...currentList, newComment] };
         }
         return exp;
       })
     );
-
     setNewCommentTexts(prev => ({ ...prev, [expId]: "" }));
   };
 
-  // call server-side AI summarize route
   const handleAITranscriptSummary = async (exp) => {
     let currentList = exp.commentsList || [];
     if (currentList.length === 0) {
-      currentList = [
-        { id: "fallback-c1", author: exp.author, text: exp.description, time: "Just now" }
-      ];
+      currentList = [{ id: "fallback-c1", author: exp.author, text: exp.description, time: "Just now" }];
     }
 
     setAiLoadingStates(prev => ({ ...prev, [exp.id]: true }));
     try {
       const result = await apiRequest("/api/ai/summarize-comments", {
         method: "POST",
-        body: JSON.stringify({
-          title: exp.title,
-          comments: currentList
-        })
+        body: JSON.stringify({ title: exp.title, comments: currentList })
       });
       setCommentsSummaries(prev => ({ ...prev, [exp.id]: result }));
     } catch (err) {
@@ -238,39 +192,27 @@ export default function ExperienceHubTab({ userEmail }) {
       prev.map(exp => {
         if (exp.id === id) {
           const liked = !exp.userLiked;
-          return {
-            ...exp,
-            userLiked: liked,
-            upvotes: liked ? exp.upvotes + 1 : exp.upvotes - 1
-          };
+          return { ...exp, userLiked: liked, upvotes: liked ? exp.upvotes + 1 : exp.upvotes - 1 };
         }
         return exp;
       })
     );
   };
 
-  // Company tabs filter options
   const companyTabs = ["All", "Amazon", "Microsoft", "Google", "TCS", "Adobe", "Meta"];
 
-  // Filter & Sort experiences by tabs, query & selected sort logic
   const filteredExperiences = [...experiences]
     .filter(exp => {
       const matchesTab = selectedCompanyFilter === "All" || exp.company === selectedCompanyFilter;
-      const matchesSearch = searchQuery === "" || 
+      const matchesSearch = searchQuery === "" ||
         exp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         exp.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         exp.role.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesTab && matchesSearch;
     })
     .sort((a, b) => {
-      if (sortBy === "upvotes") {
-        return b.upvotes - a.upvotes;
-      }
-      if (sortBy === "comments") {
-        const lenA = a.commentsList?.length || 0;
-        const lenB = b.commentsList?.length || 0;
-        return lenB - lenA;
-      }
+      if (sortBy === "upvotes") return b.upvotes - a.upvotes;
+      if (sortBy === "comments") return (b.commentsList?.length || 0) - (a.commentsList?.length || 0);
       if (sortBy === "recent") {
         const scoreA = a.id.startsWith("exp-user-") ? parseFloat(a.id.replace("exp-user-", "")) : 0;
         const scoreB = b.id.startsWith("exp-user-") ? parseFloat(b.id.replace("exp-user-", "")) : 0;
@@ -278,754 +220,880 @@ export default function ExperienceHubTab({ userEmail }) {
       }
       if (sortBy === "difficulty") {
         const score = { Easy: 1, Medium: 2, Hard: 3 };
-        const valA = score[a.difficulty || "Medium"] || 2;
-        const valB = score[b.difficulty || "Medium"] || 2;
-        return valB - valA; // Hardest first
+        return (score[b.difficulty || "Medium"] || 2) - (score[a.difficulty || "Medium"] || 2);
       }
       return 0;
     });
 
-  // Render stylized visual brand placeholder logo per company
   const renderCompanyAvatar = (companyName) => {
+    const styles = {
+      container: { width: 48, height: 48, borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }
+    };
     switch (companyName) {
       case "Amazon":
-        return (
-          <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex flex-col items-center justify-center text-amber-600 font-black relative overflow-hidden">
-            <span className="text-lg tracking-tighter leading-none -mb-1">a</span>
-            <span className="text-[9px] font-mono leading-none font-black text-amber-700">➡</span>
-          </div>
-        );
+        return <div style={{ ...styles.container, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', color: '#d97706', fontWeight: 900, fontSize: 18 }}>a</div>;
       case "Microsoft":
-        return (
-          <div className="w-12 h-12 rounded-2xl bg-sky-50 border border-sky-150 flex items-center justify-center p-2">
-            <div className="grid grid-cols-2 gap-0.5">
-              <div className="w-2.5 h-2.5 bg-red-400" />
-              <div className="w-2.5 h-2.5 bg-green-400" />
-              <div className="w-2.5 h-2.5 bg-blue-400" />
-              <div className="w-2.5 h-2.5 bg-yellow-400" />
-            </div>
-          </div>
-        );
+        return <div style={{ ...styles.container, background: '#f0f9ff', border: '1px solid #bae6fd', gap: 2, display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', padding: 8 }}>
+          {['#f87171', '#4ade80', '#60a5fa', '#facc15'].map(c => <div key={c} style={{ width: 10, height: 10, background: c, borderRadius: 2 }} />)}
+        </div>;
       case "Google":
-        return (
-          <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-150 flex items-center justify-center text-blue-600 font-extrabold text-xl relative">
-            <span className="font-display bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 bg-clip-text text-transparent">G</span>
-          </div>
-        );
+        return <div style={{ ...styles.container, background: '#eef2ff', border: '1px solid #c7d2fe', fontSize: 22, fontWeight: 800 }}>
+          <span style={{ background: 'linear-gradient(135deg, #3b82f6, #ef4444, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>G</span>
+        </div>;
       case "TCS":
-        return (
-          <div className="w-12 h-12 rounded-2xl bg-blue-900/10 border border-blue-900/20 flex items-center justify-center text-blue-900 font-black text-lg">
-            <span>T</span>
-          </div>
-        );
+        return <div style={{ ...styles.container, background: 'rgba(30,58,138,0.1)', border: '1px solid rgba(30,58,138,0.2)', color: '#1e3a8a', fontWeight: 900, fontSize: 20 }}>T</div>;
       case "Adobe":
-        return (
-          <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-650 font-black text-base">
-            <span>A</span>
-          </div>
-        );
+        return <div style={{ ...styles.container, background: 'rgba(220,38,38,0.1)', border: '1px solid rgba(220,38,38,0.2)', color: '#dc2626', fontWeight: 900, fontSize: 18 }}>A</div>;
       case "Meta":
-        return (
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-650 text-xl font-bold font-mono">
-            <span>∞</span>
-          </div>
-        );
+        return <div style={{ ...styles.container, background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', color: '#4f46e5', fontSize: 22, fontFamily: 'monospace' }}>∞</div>;
       default:
-        return (
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-205 flex items-center justify-center text-slate-600">
-            <Building2 className="h-5 w-5" />
-          </div>
-        );
+        return <div style={{ ...styles.container, background: '#f1f5f9', border: '1px solid #e2e8f0', color: '#64748b' }}><Building2 size={20} /></div>;
     }
   };
 
   return (
-    <div id="experiences_hub_master_scaffold" className="space-y-6">
-      
-      {/* Title block matching exact screenshot specifications */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-black tracking-tight text-slate-900 font-display">
+    <div style={{ maxWidth: 1024, margin: '0 auto', padding: '24px 16px', fontFamily: 'Inter, system-ui, sans-serif' }}>
+
+      {/* Header */}
+      <div style={{ marginBottom: 24 }}>
+        <h1 style={{ fontSize: 28, fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 12 }}>
           Interview Experiences
+          <span style={{ fontSize: 11, fontWeight: 600, background: '#ede9fe', color: '#6d28d9', padding: '4px 12px', borderRadius: 999 }}>community</span>
         </h1>
-        <p className="text-slate-500 text-sm max-w-2xl leading-relaxed">
-          Real interview experiences shared by candidates from top companies.
-        </p>
+        <p style={{ color: '#64748b', fontSize: 14 }}>Real interview experiences shared by candidates from top companies.</p>
       </div>
 
-      {/* FILTER BUTTON TABS BAR matching image 3 دقیقا */}
-      <div className="border-b border-slate-200">
-        <div className="flex flex-wrap gap-2 sm:gap-6 text-xs font-semibold select-none pb-1">
-          {companyTabs.map(tab => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setSelectedCompanyFilter(tab)}
-              className={`pb-3.5 border-b-2 px-1 transition-all cursor-pointer ${
-                selectedCompanyFilter === tab
-                  ? "border-violet-650 text-violet-650 font-black"
-                  : "border-transparent text-slate-450 hover:text-slate-950"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+      {/* Tabs */}
+      <div style={{ borderBottom: '1px solid #e2e8f0', marginBottom: 20, display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+        {companyTabs.map(tab => (
+          <button
+            key={tab}
+            onClick={() => setSelectedCompanyFilter(tab)}
+            style={{
+              paddingBottom: 12,
+              borderBottom: selectedCompanyFilter === tab ? '2px solid #4f46e5' : '2px solid transparent',
+              color: selectedCompanyFilter === tab ? '#4f46e5' : '#94a3b8',
+              fontWeight: selectedCompanyFilter === tab ? 900 : 600,
+              fontSize: 12,
+              background: 'none',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => { if (selectedCompanyFilter !== tab) e.target.style.color = '#0f172a'; }}
+            onMouseLeave={(e) => { if (selectedCompanyFilter !== tab) e.target.style.color = '#94a3b8'; }}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
 
-      {/* ACTIONS ROW: SEARCH & SHARE EXPERIENCE */}
-      <div className="flex flex-col sm:flex-row gap-3.5 items-center">
-        
-        {/* Search bar wrapping */}
-        <div className="relative flex-1 w-full font-display">
-          <Search className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" />
+      {/* Search & Share */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
+        <div style={{ flex: 1, position: 'relative', minWidth: 200 }}>
+          <Search size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search experiences..."
-            className="w-full pl-10.5 pr-4 py-3 bg-white border border-slate-200 focus:border-violet-500 rounded-xl text-xs focus:outline-none transition-all font-sans font-medium hover:bg-slate-50/50"
+            style={{
+              width: '100%',
+              padding: '10px 12px 10px 36px',
+              border: '1px solid #e2e8f0',
+              borderRadius: 12,
+              fontSize: 13,
+              outline: 'none',
+              transition: 'all 0.2s ease',
+              background: 'white'
+            }}
+            onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+            onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
           />
         </div>
-
-        {/* Share experience CTA button */}
         <button
           onClick={() => setIsShareModalOpen(true)}
-          className="w-full sm:w-auto px-5 py-3 h-[42px] bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-xl text-xs font-black shadow-md shadow-indigo-600/10 flex items-center justify-center gap-2 cursor-pointer select-none shrink-0"
+          style={{
+            padding: '10px 20px',
+            background: '#4f46e5',
+            color: 'white',
+            borderRadius: 12,
+            fontSize: 13,
+            fontWeight: 700,
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            transition: 'all 0.2s ease',
+            cursor: 'pointer',
+            whiteSpace: 'nowrap'
+          }}
+          onMouseEnter={(e) => { e.target.style.background = '#4338ca'; e.target.style.transform = 'scale(1.02)'; }}
+          onMouseLeave={(e) => { e.target.style.background = '#4f46e5'; e.target.style.transform = 'scale(1)'; }}
+          onMouseDown={(e) => { e.target.style.transform = 'scale(0.95)'; }}
+          onMouseUp={(e) => { e.target.style.transform = 'scale(1.02)'; }}
         >
-          <Plus className="h-4.5 w-4.5 stroke-[2.5]" />
-          <span>Share Experience</span>
+          <Plus size={18} /> Share Experience
         </button>
-
       </div>
 
-      {/* SORTING & COLLECTIVE GROUP SUMMARY CONTROLS */}
-      <div className="p-4 bg-slate-50/70 border border-slate-200/60 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Sort parameters */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
-          <div className="flex items-center gap-1.5 mr-1 font-extrabold text-slate-700">
-            <SlidersHorizontal className="h-3.5 w-3.5 text-slate-500" />
-            <span>Sort Reviews:</span>
-          </div>
+      {/* Sort & AI Summary */}
+      <div style={{
+        padding: 16,
+        background: 'rgba(255,255,255,0.7)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid #e2e8f0',
+        borderRadius: 16,
+        marginBottom: 20,
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 12,
+        alignItems: 'center',
+        justifyContent: 'space-between'
+      }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+          <SlidersHorizontal size={14} style={{ color: '#64748b', marginRight: 4 }} />
+          <span style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginRight: 4 }}>Sort:</span>
           {[
             { value: "upvotes", label: "🔥 Popular" },
             { value: "comments", label: "💬 Discussed" },
             { value: "recent", label: "📅 Newest" },
-            { value: "difficulty", label: "⚡ Hardest Code" }
+            { value: "difficulty", label: "⚡ Hardest" }
           ].map((item) => (
             <button
               key={item.value}
-              type="button"
-              onClick={() => {
-                setSortBy(item.value);
-                setGroupSummary(null); // Clear group summary so it can be re-run on current order
+              onClick={() => { setSortBy(item.value); setGroupSummary(null); }}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 8,
+                fontSize: 11,
+                fontWeight: 700,
+                border: '1px solid',
+                background: sortBy === item.value ? '#4f46e5' : 'white',
+                borderColor: sortBy === item.value ? '#4f46e5' : '#e2e8f0',
+                color: sortBy === item.value ? 'white' : '#475569',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
               }}
-              className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer text-[11px] font-bold border ${
-                sortBy === item.value
-                  ? "bg-violet-650 border-violet-650 text-white shadow-sm"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
+              onMouseEnter={(e) => { if (sortBy !== item.value) { e.target.style.background = '#f8fafc'; e.target.style.transform = 'scale(1.05)'; } }}
+              onMouseLeave={(e) => { if (sortBy !== item.value) { e.target.style.background = 'white'; e.target.style.transform = 'scale(1)'; } }}
             >
               {item.label}
             </button>
           ))}
         </div>
-
-        {/* Group Intelligence CTA Trigger */}
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            disabled={groupSummaryLoading || filteredExperiences.length === 0}
-            onClick={() => handleAIGroupSummary(filteredExperiences)}
-            className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-xs font-black shadow-sm flex items-center gap-2 transition-all hover:scale-[1.01] active:scale-95 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-          >
-            <Sparkles className="h-3.5 w-3.5 animate-pulse text-violet-200" />
-            <span>AI Summarize Group ({filteredExperiences.length} {selectedCompanyFilter === "All" ? "Total" : selectedCompanyFilter} Reviews)</span>
-          </button>
-          
-          {groupSummary && (
-            <button
-              type="button"
-              onClick={() => setGroupSummary(null)}
-              className="p-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-400 hover:text-slate-600 rounded-xl transition-all cursor-pointer"
-              title="Clear summary report"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
+        <button
+          onClick={() => handleAIGroupSummary(filteredExperiences)}
+          disabled={groupSummaryLoading || filteredExperiences.length === 0}
+          style={{
+            padding: '6px 16px',
+            background: '#7c3aed',
+            color: 'white',
+            borderRadius: 8,
+            fontSize: 12,
+            fontWeight: 700,
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+            opacity: groupSummaryLoading || filteredExperiences.length === 0 ? 0.5 : 1,
+            pointerEvents: groupSummaryLoading || filteredExperiences.length === 0 ? 'none' : 'auto'
+          }}
+          onMouseEnter={(e) => { if (!groupSummaryLoading && filteredExperiences.length > 0) { e.target.style.background = '#6d28d9'; e.target.style.transform = 'scale(1.02)'; } }}
+          onMouseLeave={(e) => { e.target.style.background = '#7c3aed'; e.target.style.transform = 'scale(1)'; }}
+        >
+          <Sparkles size={14} /> AI Summarize ({filteredExperiences.length})
+        </button>
       </div>
 
-      {/* AI GROUP SUMMARIZED CARD CONTAINER */}
-      <AnimatePresence mode="wait">
+      {/* Group Summary Display */}
+      <AnimatePresence>
         {groupSummaryLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="p-6 bg-gradient-to-br from-violet-500/10 via-indigo-500/5 to-transparent border border-violet-100 rounded-3xl shadow-sm text-center py-10 space-y-3.5 relative overflow-hidden backdrop-blur-md"
-          >
-            <div className="absolute top-[-30%] right-[-10%] w-[120px] h-[120px] rounded-full bg-indigo-500/15 blur-[35px] pointer-events-none" />
-            <Loader2 className="h-9 w-9 text-violet-600 animate-spin mx-auto" />
-            <div className="space-y-1">
-              <h4 className="font-extrabold text-sm text-slate-805 tracking-tight">Compiling Collective Review Insights</h4>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">Evaluating matching candidate testimonials, extracting coding rounds structure, and optimizing required preparation blueprints with Gemini...</p>
-            </div>
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ padding: 24, background: 'linear-gradient(135deg, rgba(124,58,237,0.1), rgba(99,102,241,0.05))', borderRadius: 16, textAlign: 'center', marginBottom: 20 }}>
+            <Loader2 size={32} style={{ color: '#7c3aed', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+            <p style={{ marginTop: 12, fontWeight: 700, color: '#1e293b', fontSize: 14 }}>Analyzing collective insights...</p>
           </motion.div>
         )}
-
-        {groupSummaryError && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="p-4 bg-red-50 border border-red-105 text-red-700 rounded-3xl text-xs font-semibold"
-          >
-            ⚠ {groupSummaryError}
-          </motion.div>
-        )}
-
         {groupSummary && !groupSummaryLoading && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="p-6 bg-gradient-to-br from-indigo-50/50 via-white to-violet-50/30 border border-violet-150 rounded-3xl shadow-md space-y-5 relative overflow-hidden"
-          >
-            {/* Ambient blur ornament */}
-            <div className="absolute top-[-40%] right-[-10%] w-[150px] h-[150px] rounded-full bg-violet-600/10 blur-[40px] pointer-events-none" />
-            
-            <div className="flex items-center justify-between gap-4 border-b border-violet-100/60 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="p-1.5 rounded-lg bg-violet-605 text-white shadow-sm shadow-violet-600/10">
-                  <Bot className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight flex items-center gap-1.5 font-display">
-                    AI Collective Review Intelligence
-                  </h3>
-                  <p className="text-[10px] text-slate-500">Synthesized report across {filteredExperiences.length} filtered {selectedCompanyFilter === "All" ? "SDE" : selectedCompanyFilter} experiences</p>
-                </div>
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            style={{ padding: 20, background: 'linear-gradient(135deg, rgba(238,242,255,0.5), white)', border: '1px solid #c4b5fd', borderRadius: 16, marginBottom: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Bot size={20} color="#7c3aed" />
+                <h3 style={{ fontWeight: 900, fontSize: 14 }}>AI Collective Review</h3>
               </div>
-
-              <div className="flex items-center gap-1.5 px-3 py-1 bg-violet-100 text-violet-700 text-[10px] font-mono font-black rounded-lg">
-                <span>EVALUATION:</span>
-                <span>{groupSummary.difficultyRating?.toUpperCase() || "MEDIUM"}</span>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs">
-              {/* Pattern 1: Rounds structure */}
-              <div className="space-y-2.5 bg-white/65 p-4 rounded-2xl border border-violet-100/50">
-                <h4 className="font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wide text-[10px] text-violet-650">
-                  <CheckCircle className="h-3.5 w-3.5 text-violet-505" />
-                  Rounds Structure
-                </h4>
-                <ul className="space-y-1.5 text-slate-600 font-normal list-none">
-                  {groupSummary.commonPatterns?.map((pt, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-violet-500 font-black">•</span>
-                      <span className="leading-relaxed">{pt}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Pattern 2: Frequently Audited Questions */}
-              <div className="space-y-2.5 bg-white/65 p-4 rounded-2xl border border-violet-100/50">
-                <h4 className="font-bold text-slate-800 flex items-center gap-1.5 uppercase tracking-wide text-[10px] text-indigo-650">
-                  <HelpCircle className="h-3.5 w-3.5 text-indigo-505" />
-                  Technical Focus
-                </h4>
-                <ul className="space-y-1.5 text-slate-600 font-normal list-none">
-                  {groupSummary.frequentQuestions?.map((fq, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-indigo-500 font-black">•</span>
-                      <span className="leading-relaxed">{fq}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Pattern 3: Custom Prep Actions */}
-              <div className="space-y-2.5 bg-white/65 p-4 rounded-2xl border border-violet-100/50">
-                <h4 className="font-bold text-slate-805 flex items-center gap-1.5 uppercase tracking-wide text-[10px] text-pink-650">
-                  <TrendingUp className="h-3.5 w-3.5 text-pink-505" />
-                  Preparation Strategy
-                </h4>
-                <ul className="space-y-1.5 text-slate-600 font-normal list-none">
-                  {groupSummary.optimizedPreparationTips?.map((tip, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-pink-500 font-black">•</span>
-                      <span className="leading-relaxed">{tip}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            <div className="flex justify-end pt-1">
-              <button
-                type="button"
-                onClick={() => setGroupSummary(null)}
-                className="text-[10px] font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider flex items-center gap-1 cursor-pointer"
-              >
-                Dismiss Synthesized Report <X className="h-3 w-3" />
+              <button onClick={() => setGroupSummary(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8' }}>
+                <X size={16} />
               </button>
             </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16 }}>
+              {groupSummary.commonPatterns && (
+                <div style={{ background: 'rgba(255,255,255,0.6)', padding: 12, borderRadius: 12 }}>
+                  <h4 style={{ fontWeight: 700, fontSize: 11, color: '#6d28d9', marginBottom: 6 }}>📋 Rounds Structure</h4>
+                  {groupSummary.commonPatterns.map((p, i) => <div key={i} style={{ fontSize: 12, color: '#475569', padding: '2px 0' }}>• {p}</div>)}
+                </div>
+              )}
+              {groupSummary.frequentQuestions && (
+                <div style={{ background: 'rgba(255,255,255,0.6)', padding: 12, borderRadius: 12 }}>
+                  <h4 style={{ fontWeight: 700, fontSize: 11, color: '#4f46e5', marginBottom: 6 }}>🎯 Technical Focus</h4>
+                  {groupSummary.frequentQuestions.map((q, i) => <div key={i} style={{ fontSize: 12, color: '#475569', padding: '2px 0' }}>• {q}</div>)}
+                </div>
+              )}
+              {groupSummary.optimizedPreparationTips && (
+                <div style={{ background: 'rgba(255,255,255,0.6)', padding: 12, borderRadius: 12 }}>
+                  <h4 style={{ fontWeight: 700, fontSize: 11, color: '#db2777', marginBottom: 6 }}>🚀 Prep Strategy</h4>
+                  {groupSummary.optimizedPreparationTips.map((t, i) => <div key={i} style={{ fontSize: 12, color: '#475569', padding: '2px 0' }}>• {t}</div>)}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+        {groupSummaryError && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ padding: 12, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, color: '#dc2626', fontSize: 12, marginBottom: 20 }}>
+            ⚠ {groupSummaryError}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* PRIMARY LIST VIEW CONTAINER */}
-      <div className="space-y-4">
+      {/* Experience Cards */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         <AnimatePresence mode="popLayout">
-          {filteredExperiences.length > 0 ? (
-            filteredExperiences.map((exp) => {
-              const isCommentsOpen = expandedCommentsId === exp.id;
-              const commentsList = exp.commentsList || [];
-              const commentText = newCommentTexts[exp.id] || "";
-              const summary = commentsSummaries[exp.id];
-              const aiLoading = aiLoadingStates[exp.id] || false;
+          {filteredExperiences.length > 0 ? filteredExperiences.map((exp) => {
+            const isCommentsOpen = expandedCommentsId === exp.id;
+            const commentsList = exp.commentsList || [];
+            const summary = commentsSummaries[exp.id];
+            const aiLoading = aiLoadingStates[exp.id] || false;
 
-              return (
-                <motion.div
-                  key={exp.id}
-                  layout
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="p-5 sm:p-6 bg-white border border-slate-200 rounded-3xl shadow-sm hover:border-violet-500/20 hover:shadow-md transition-all flex flex-col gap-5 relative group"
-                >
-                  
-                  {/* Top content row (Avatar + Details + Badges) */}
-                  <div className="flex flex-col sm:flex-row gap-4 items-start w-full relative">
-                    
-                    {/* Visual Company Avatar left element */}
-                    <div className="shrink-0">
-                      {renderCompanyAvatar(exp.company)}
+            return (
+              <motion.div
+                key={exp.id}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                style={{
+                  padding: 20,
+                  background: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 16,
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(79,70,229,0.2)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.boxShadow = 'none'; }}
+              >
+                <div style={{ display: 'flex', gap: 16 }}>
+                  {renderCompanyAvatar(exp.company)}
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontWeight: 800, fontSize: 15, color: '#0f172a', transition: 'color 0.2s ease' }}
+                      onMouseEnter={(e) => e.target.style.color = '#4f46e5'}
+                      onMouseLeave={(e) => e.target.style.color = '#0f172a'}>
+                      {exp.title}
+                    </h3>
+                    <div style={{ display: 'flex', gap: 8, fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                      <span>By {exp.author}</span>
+                      <span>•</span>
+                      <span>{exp.timeAgo}</span>
                     </div>
-
-                    {/* Main Experience textual details */}
-                    <div className="flex-1 space-y-2.5">
-                      
-                      {/* Topic Title */}
-                      <div className="space-y-1">
-                        <h3 className="font-extrabold text-sm sm:text-base text-slate-900 group-hover:text-indigo-600 transition-colors">
-                          {exp.title}
-                        </h3>
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                          <span>By {exp.author}</span>
-                          <span className="text-slate-300">•</span>
-                          <span>{exp.timeAgo}</span>
-                        </div>
-                      </div>
-
-                      {/* Summary / Snippet */}
-                      <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed font-normal">
-                        {exp.description}
-                      </p>
-
-                      {/* Badges parameters Row */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
-                        <span className="px-2.5 py-0.5 rounded bg-slate-50 border border-slate-150 text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                          <Briefcase className="h-3 w-3" />
-                          <span>{exp.role}</span>
+                    <p style={{ fontSize: 13, color: '#475569', marginTop: 8, lineHeight: 1.6 }}>{exp.description}</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+                      <span style={{ padding: '2px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Briefcase size={12} /> {exp.role}
+                      </span>
+                      <span style={{ padding: '2px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <Users size={12} /> {exp.rounds}
+                      </span>
+                      <span style={{ padding: '2px 10px', background: '#f8fafc', borderRadius: 6, fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                        <MapPin size={12} /> {exp.location}
+                      </span>
+                      {exp.difficulty && (
+                        <span style={{
+                          padding: '2px 10px',
+                          borderRadius: 6,
+                          fontSize: 10,
+                          fontWeight: 700,
+                          background: exp.difficulty === 'Easy' ? '#ecfdf5' : exp.difficulty === 'Hard' ? '#fef2f2' : '#fffbeb',
+                          color: exp.difficulty === 'Easy' ? '#059669' : exp.difficulty === 'Hard' ? '#dc2626' : '#d97706',
+                          border: `1px solid ${exp.difficulty === 'Easy' ? '#a7f3d0' : exp.difficulty === 'Hard' ? '#fecaca' : '#fde68a'}`
+                        }}>
+                          {exp.difficulty}
                         </span>
-                        <span className="px-2.5 py-0.5 rounded bg-slate-50 border border-slate-150 text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          <span>{exp.rounds}</span>
-                        </span>
-                        <span className="px-2.5 py-0.5 rounded bg-slate-50 border border-slate-150 text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                          <MapPin className="h-3 w-3" />
-                          <span>{exp.location}</span>
-                        </span>
-                        {exp.difficulty && (
-                          <span className={`px-2.5 py-0.5 rounded text-[10px] font-extrabold flex items-center gap-1 border shadow-xs ${
-                            exp.difficulty === "Easy"
-                              ? "bg-emerald-50 text-emerald-600 border-emerald-200"
-                              : exp.difficulty === "Hard"
-                              ? "bg-red-50 text-red-600 border-red-200"
-                              : "bg-amber-50 text-amber-600 border-amber-200"
-                          }`}>
-                            <TrendingUp className="h-3 w-3" />
-                            <span>{exp.difficulty}</span>
-                          </span>
-                        )}
-                      </div>
-
+                      )}
                     </div>
-
-                    {/* BOTTOM RIGHT STATS ACTIONS (Hearts & comments) with interactive Spring animations */}
-                    <div className="sm:absolute sm:bottom-0 sm:right-0 flex flex-wrap items-center gap-3 text-xs font-bold text-slate-500 select-none self-end sm:self-auto border-t border-slate-100 sm:border-0 pt-3 sm:pt-0 w-full sm:w-auto justify-end">
-                      
-                      <button
-                        onClick={() => {
-                          setExpandedCommentsId(isCommentsOpen ? null : exp.id);
-                          if (!isCommentsOpen) {
-                            setTimeout(() => {
-                              handleAITranscriptSummary(exp);
-                            }, 100);
-                          }
-                        }}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black border transition-all cursor-pointer outline-none ${
-                          isCommentsOpen && commentsSummaries[exp.id]
-                            ? "bg-violet-100 border-violet-300 text-violet-700"
-                            : "bg-violet-50 hover:bg-violet-100 border-violet-100 text-violet-605 hover:text-violet-750"
-                        }`}
-                        title="AI Summarize Peer Reviews"
-                      >
-                        <Sparkles className="h-3.5 w-3.5 animate-pulse text-violet-505" />
-                        <span>Summarize Reviews</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleHeartPopperToggle(exp.id)}
-                        className={`flex items-center gap-1.5 cursor-pointer outline-none transition-all ${
-                          exp.userLiked 
-                            ? "text-rose-500 scale-105" 
-                            : "text-slate-450 hover:text-rose-500 hover:scale-105"
-                        }`}
-                      >
-                        <Heart className={`h-4.5 w-4.5 ${exp.userLiked ? "fill-rose-500 stroke-rose-500" : ""}`} />
-                        <span className="font-mono text-[11px]">{exp.upvotes}</span>
-                      </button>
-
-                      <button
-                        onClick={() => setExpandedCommentsId(isCommentsOpen ? null : exp.id)}
-                        className={`flex items-center gap-1.5 cursor-pointer outline-none transition-all ${
-                          isCommentsOpen 
-                            ? "text-indigo-600 scale-105" 
-                            : "text-slate-455 hover:text-indigo-600"
-                        }`}
-                        title="Toggle Peer Discussions"
-                      >
-                        <MessageSquare className="h-4.5 w-4.5" />
-                        <span className="font-mono text-[11px]">{exp.comments}</span>
-                      </button>
-
-                    </div>
-
                   </div>
+                </div>
 
-                  {/* COMMENTS EXPANDABLE DRAWER */}
-                  {isCommentsOpen && (
-                    <div className="mt-2 pt-4 border-t border-slate-100 space-y-4">
-                      
-                      {/* AI Summarizer Trigger block */}
-                      <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/80 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                        <div className="space-y-0.5">
-                          <div className="flex items-center gap-2">
-                            <span className="relative flex h-2 w-2">
-                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
-                              <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-505"></span>
-                            </span>
-                            <h4 className="text-xs font-black text-slate-900 flex items-center gap-1">
-                              AI Comment Intelligence Summarizer
-                            </h4>
-                          </div>
-                          <p className="text-[11px] text-slate-500 leading-relaxed font-normal">
-                            Synthesize active peer notes, advice, and candidate questions into preparation takeaways.
-                          </p>
+                {/* Actions */}
+                <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 12, borderTop: '1px solid #f1f5f9', justifyContent: 'flex-end' }}>
+                  <button
+                    onClick={() => { setExpandedCommentsId(isCommentsOpen ? null : exp.id); if (!isCommentsOpen) setTimeout(() => handleAITranscriptSummary(exp), 100); }}
+                    style={{
+                      padding: '4px 12px',
+                      borderRadius: 8,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      border: '1px solid #ede9fe',
+                      background: isCommentsOpen && summary ? '#ede9fe' : '#f5f3ff',
+                      color: isCommentsOpen && summary ? '#6d28d9' : '#7c3aed',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => { if (!isCommentsOpen || !summary) { e.target.style.background = '#ede9fe'; } }}
+                    onMouseLeave={(e) => { if (!isCommentsOpen || !summary) { e.target.style.background = '#f5f3ff'; } }}
+                  >
+                    <Sparkles size={12} /> Summarize
+                  </button>
+                  <button
+                    onClick={() => handleHeartPopperToggle(exp.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: exp.userLiked ? '#f43f5e' : '#94a3b8',
+                      transition: 'all 0.2s ease',
+                      fontSize: 13,
+                      fontWeight: 600
+                    }}
+                    onMouseEnter={(e) => { if (!exp.userLiked) { e.target.style.color = '#f43f5e'; e.target.style.transform = 'scale(1.05)'; } }}
+                    onMouseLeave={(e) => { if (!exp.userLiked) { e.target.style.color = '#94a3b8'; e.target.style.transform = 'scale(1)'; } }}
+                  >
+                    <Heart size={18} fill={exp.userLiked ? '#f43f5e' : 'none'} /> {exp.upvotes}
+                  </button>
+                  <button
+                    onClick={() => setExpandedCommentsId(isCommentsOpen ? null : exp.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: isCommentsOpen ? '#4f46e5' : '#94a3b8',
+                      transition: 'all 0.2s ease',
+                      fontSize: 13,
+                      fontWeight: 600
+                    }}
+                    onMouseEnter={(e) => { if (!isCommentsOpen) { e.target.style.color = '#4f46e5'; e.target.style.transform = 'scale(1.05)'; } }}
+                    onMouseLeave={(e) => { if (!isCommentsOpen) { e.target.style.color = '#94a3b8'; e.target.style.transform = 'scale(1)'; } }}
+                  >
+                    <MessageSquare size={18} /> {exp.comments}
+                  </button>
+                </div>
+
+                {/* Comments Section */}
+                {isCommentsOpen && (
+                  <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid #f1f5f9' }}>
+                    {aiLoading && (
+                      <div style={{ padding: 16, background: '#f8fafc', borderRadius: 12, marginBottom: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Bot size={16} color="#4f46e5" />
+                          <span style={{ fontSize: 12, fontWeight: 600 }}>Analyzing comments...</span>
                         </div>
-
-                        <button
-                          onClick={() => handleAITranscriptSummary(exp)}
-                          disabled={aiLoading || commentsList.length === 0}
-                          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white rounded-xl text-[11px] font-black transition-all flex items-center gap-1.5 cursor-pointer select-none self-stretch sm:self-auto text-center justify-center whitespace-nowrap"
-                        >
-                          <Sparkles className="h-4 w-4 text-amber-200 animate-pulse" />
-                          <span>{aiLoading ? "Summarizing Comments..." : "Summarize Peer Comments"}</span>
-                        </button>
                       </div>
-
-                      {/* Display summary loading indicator */}
-                      {aiLoading && (
-                        <div className="p-5 rounded-2xl border border-dashed border-indigo-200 bg-white space-y-3.5 animate-pulse">
-                          <div className="flex items-center gap-2">
-                            <Bot className="h-5 w-5 text-indigo-600 animate-bounce" />
-                            <span className="text-[11px] font-bold text-indigo-700">Gemini is synthesizing candidate forum comments...</span>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="h-3.5 bg-slate-100 rounded w-4/5"></div>
-                            <div className="h-3 bg-slate-100 rounded w-11/12"></div>
-                            <div className="h-3.5 bg-slate-100 rounded w-3/4"></div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Display structured summary */}
-                      {summary && !aiLoading && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.98 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          className="p-5 rounded-2xl border border-indigo-100 bg-indigo-50/20 space-y-4 shadow-sm"
-                        >
-                          <div className="flex items-center gap-2 border-b border-indigo-100 pb-2">
-                            <Bot className="h-5 w-5 text-indigo-600" />
-                            <h5 className="text-xs font-black text-indigo-950 uppercase tracking-wider">AI High-Yield Discussion Summary</h5>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                            {/* Questions */}
-                            <div className="space-y-2 bg-white/50 p-3 rounded-xl border border-violet-100/50">
-                              <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#c026d3]">
-                                <HelpCircle className="h-3.5 w-3.5" />
-                                <span>Core Questions Asked</span>
-                              </div>
-                              <ul className="space-y-1.5">
-                                {summary.coreQuestions.map((q, idx) => (
-                                  <li key={idx} className="text-[11px] text-slate-700 leading-normal pl-3 relative">
-                                    <span className="absolute left-0 top-1 text-purple-400">•</span>
-                                    {q}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Takeaways */}
-                            <div className="space-y-2 bg-white/50 p-3 rounded-xl border border-indigo-100/30">
-                              <div className="flex items-center gap-1.5 text-xs font-extrabold text-[#4f46e5]">
-                                <CheckCircle className="h-3.5 w-3.5" />
-                                <span>Key Insights / Answers</span>
-                              </div>
-                              <ul className="space-y-1.5">
-                                {summary.takeaways.map((t, idx) => (
-                                  <li key={idx} className="text-[11px] text-slate-700 leading-normal pl-3 relative">
-                                    <span className="absolute left-0 top-1 text-indigo-400">•</span>
-                                    {t}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Prep Focus */}
-                            <div className="space-y-2 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
-                              <div className="flex items-center gap-1.5 text-xs font-extrabold text-amber-700">
-                                <Sparkles className="h-3.5 w-3.5" />
-                                <span>Recommended Prep Focus</span>
-                              </div>
-                              <ul className="space-y-1.5">
-                                {summary.prepFocus.map((f, idx) => (
-                                  <li key={idx} className="text-[11px] text-amber-900 leading-normal bg-orange-500/10 rounded px-2 py-1.5 border border-amber-500/10 font-medium">
-                                    {f}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </motion.div>
-                      )}
-
-                      {/* Comments Feed list */}
-                      <div className="space-y-2.5">
-                        <h4 className="text-[11px] font-bold text-slate-450 uppercase tracking-wider select-none">
-                          Discussion Feed ({commentsList.length})
+                    )}
+                    {summary && !aiLoading && (
+                      <div style={{ padding: 16, background: 'rgba(238,242,255,0.3)', borderRadius: 12, marginBottom: 12 }}>
+                        <h4 style={{ fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
+                          <Bot size={16} /> AI Summary
                         </h4>
-
-                        {commentsList.length > 0 ? (
-                          <div className="space-y-2.5 max-h-[220px] overflow-y-auto pr-1">
-                            {commentsList.map((c) => (
-                              <div key={c.id} className="p-3.5 bg-slate-50/70 border border-slate-100 rounded-2xl space-y-1">
-                                <div className="flex justify-between items-center">
-                                  <span className="text-[11px] font-extrabold text-slate-800">{c.author}</span>
-                                  <span className="text-[10px] text-slate-400 font-mono">{c.time}</span>
-                                </div>
-                                <p className="text-[12px] text-slate-600 leading-relaxed font-normal">{c.text}</p>
-                              </div>
-                            ))}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
+                          <div><strong style={{ fontSize: 11, color: '#6d28d9' }}>Questions</strong>
+                            {summary.coreQuestions?.map((q, i) => <div key={i} style={{ fontSize: 12, padding: '2px 0' }}>• {q}</div>)}
                           </div>
-                        ) : (
-                          <p className="text-[11px] text-slate-400 italic">No comments posted yet. Start the discussion below!</p>
-                        )}
+                          <div><strong style={{ fontSize: 11, color: '#4f46e5' }}>Insights</strong>
+                            {summary.takeaways?.map((t, i) => <div key={i} style={{ fontSize: 12, padding: '2px 0' }}>• {t}</div>)}
+                          </div>
+                          <div><strong style={{ fontSize: 11, color: '#db2777' }}>Prep Focus</strong>
+                            {summary.prepFocus?.map((p, i) => <div key={i} style={{ fontSize: 12, padding: '2px 0' }}>• {p}</div>)}
+                          </div>
+                        </div>
                       </div>
-
-                      {/* Add comment box */}
-                      <div className="flex gap-2.5 pt-1">
-                        <input
-                          type="text"
-                          value={commentText}
-                          onChange={(e) => setNewCommentTexts(prev => ({ ...prev, [exp.id]: e.target.value }))}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") handleAddComment(exp.id);
-                          }}
-                          placeholder="Type your comment / ask a question..."
-                          className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-205 focus:border-violet-500 rounded-xl text-xs focus:outline-none placeholder-slate-400 font-medium font-sans bg-white focus:bg-white"
-                        />
-                        <button
-                          onClick={() => handleAddComment(exp.id)}
-                          className="px-5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-colors shadow flex items-center justify-center cursor-pointer select-none"
-                        >
-                          Send
-                        </button>
-                      </div>
-
+                    )}
+                    <div style={{ maxHeight: 200, overflowY: 'auto', marginBottom: 12 }}>
+                      {commentsList.map((c) => (
+                        <div key={c.id} style={{ padding: 10, background: '#f8fafc', borderRadius: 8, marginBottom: 8 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <strong style={{ fontSize: 12 }}>{c.author}</strong>
+                            <span style={{ fontSize: 10, color: '#94a3b8' }}>{c.time}</span>
+                          </div>
+                          <p style={{ fontSize: 13, color: '#475569', marginTop: 2 }}>{c.text}</p>
+                        </div>
+                      ))}
                     </div>
-                  )}
-
-                </motion.div>
-              );
-            })
-          ) : (
-            <div className="p-12 text-center rounded-3xl bg-white border border-slate-200 text-slate-400 space-y-3 min-h-[250px] flex flex-col items-center justify-center">
-              <Filter className="h-8 w-8 text-slate-300 animate-pulse" />
-              <h4 className="font-extrabold text-sm text-slate-700">No matching experiences found</h4>
-              <p className="text-xs text-slate-400 max-w-sm">Try modifying your search filter keywords or select a different company directory tab.</p>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <input
+                        type="text"
+                        value={newCommentTexts[exp.id] || ''}
+                        onChange={(e) => setNewCommentTexts(prev => ({ ...prev, [exp.id]: e.target.value }))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(exp.id); }}
+                        placeholder="Add a comment..."
+                        style={{
+                          flex: 1,
+                          padding: '8px 12px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 8,
+                          fontSize: 13,
+                          outline: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; }}
+                      />
+                      <button
+                        onClick={() => handleAddComment(exp.id)}
+                        style={{
+                          padding: '8px 16px',
+                          background: '#4f46e5',
+                          color: 'white',
+                          borderRadius: 8,
+                          border: 'none',
+                          fontSize: 12,
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => { e.target.style.background = '#4338ca'; e.target.style.transform = 'scale(1.02)'; }}
+                        onMouseLeave={(e) => { e.target.style.background = '#4f46e5'; e.target.style.transform = 'scale(1)'; }}
+                      >
+                        Send
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            );
+          }) : (
+            <div style={{ padding: 48, textAlign: 'center', background: 'white', borderRadius: 16, border: '1px solid #e2e8f0' }}>
+              <Filter size={32} style={{ color: '#cbd5e1', margin: '0 auto 8px' }} />
+              <h4 style={{ fontWeight: 700, color: '#334155' }}>No experiences found</h4>
+              <p style={{ fontSize: 13, color: '#94a3b8' }}>Try adjusting your filters</p>
             </div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* SHARE MODAL COMPONENT */}
+      {/* Share Modal - Blog Style Single Page Form */}
       <AnimatePresence>
         {isShareModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            
-            {/* Overlay */}
+          <div style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: 16 }}>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsShareModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+              style={{ position: 'absolute', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}
             />
-
-            {/* Modal Body */}
             <motion.div
-              initial={{ scale: 0.95, y: 15, opacity: 0 }}
+              initial={{ scale: 0.95, y: 10, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.95, y: 15, opacity: 0 }}
-              className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden z-10 space-y-6"
+              exit={{ scale: 0.95, y: 10, opacity: 0 }}
+              style={{
+                position: 'relative',
+                background: 'white',
+                borderRadius: 24,
+                padding: 32,
+                maxWidth: 600,
+                width: '100%',
+                maxHeight: '90vh',
+                overflowY: 'auto'
+              }}
             >
-              
-              <div className="flex justify-between items-center pb-2">
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
                 <div>
-                  <h3 className="text-lg font-black text-slate-900 font-display">Share Interview Experience</h3>
-                  <p className="text-xs text-slate-550">Empower colleagues with your authentic interview learnings.</p>
+                  <h3 style={{ fontSize: 22, fontWeight: 900, color: '#0f172a' }}>Share Your Interview Experience</h3>
+                  <p style={{ fontSize: 13, color: '#64748b', marginTop: 4 }}>Help other candidates prepare better by sharing your interview journey</p>
                 </div>
                 <button
                   onClick={() => setIsShareModalOpen(false)}
-                  className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                  onMouseEnter={(e) => e.target.style.color = '#0f172a'}
+                  onMouseLeave={(e) => e.target.style.color = '#64748b'}
                 >
-                  <X className="h-4.5 w-4.5" />
+                  <X size={20} color="#64748b" />
                 </button>
               </div>
 
-              <form onSubmit={handleShareSubmit} className="space-y-4">
-                
-                {/* Company & Location Rows */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700 tracking-tight uppercase">Company</label>
+              <form onSubmit={handleShareSubmit}>
+                {/* Personal Information Section */}
+                <div style={{ marginBottom: 24 }}>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, borderBottom: '2px solid #f1f5f9', paddingBottom: 8 }}>
+                    Personal Information
+                  </h4>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Full name <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Your full name"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Email <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Your email address"
+                      required
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Work Experience
+                    </label>
                     <select
-                      value={newCompany}
-                      onChange={(e) => setNewCompany(e.target.value)}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-205 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-indigo-500 focus:bg-white"
+                      value={workExperience}
+                      onChange={(e) => setWorkExperience(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        transition: 'all 0.2s ease',
+                        background: 'white'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
                     >
-                      <option value="Amazon">Amazon</option>
-                      <option value="Microsoft">Microsoft</option>
-                      <option value="Google">Google</option>
-                      <option value="TCS">TCS</option>
-                      <option value="Adobe">Adobe</option>
-                      <option value="Meta">Meta</option>
+                      <option value="0-1 years">0-1 years</option>
+                      <option value="1-3 years">1-3 years</option>
+                      <option value="3-5 years">3-5 years</option>
+                      <option value="5-10 years">5-10 years</option>
+                      <option value="10+ years">10+ years</option>
                     </select>
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700 tracking-tight uppercase">Location</label>
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Current Role
+                    </label>
                     <input
                       type="text"
-                      required
-                      value={newLocation}
-                      onChange={(e) => setNewLocation(e.target.value)}
-                      placeholder="e.g. Bangalore, Remote"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-205 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-indigo-500 focus:bg-white"
+                      value={currentRole}
+                      onChange={(e) => setCurrentRole(e.target.value)}
+                      placeholder="Your current role"
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      LinkedIn Profile
+                    </label>
+                    <input
+                      type="url"
+                      value={linkedinUrl}
+                      onChange={(e) => setLinkedinUrl(e.target.value)}
+                      placeholder="Your LinkedIn profile URL"
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      About yourself
+                    </label>
+                    <textarea
+                      value={aboutYourself}
+                      onChange={(e) => setAboutYourself(e.target.value)}
+                      rows={4}
+                      placeholder="Write about your current role, previous experience, skills, etc. (30-40 words recommended)."
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        resize: 'vertical',
+                        transition: 'all 0.2s ease',
+                        fontFamily: 'Inter, system-ui, sans-serif'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
                 </div>
 
-                {/* Title */}
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-slate-700 tracking-tight uppercase">Experience Title</label>
-                  <input
-                    type="text"
-                    required
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="e.g. Amazon SDE-1 Interview Experience"
-                    className="w-full p-2.5 bg-slate-50 border border-slate-205 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-indigo-500 focus:bg-white"
-                  />
-                </div>
+                {/* Interview Details Section */}
+                <div style={{ marginBottom: 24 }}>
+                  <h4 style={{ fontSize: 16, fontWeight: 700, color: '#0f172a', marginBottom: 16, borderBottom: '2px solid #f1f5f9', paddingBottom: 8 }}>
+                    Interview Details
+                  </h4>
 
-                {/* Role, Rounds and Difficulty */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700 tracking-tight uppercase">Role / Position</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        Company <span style={{ color: '#dc2626' }}>*</span>
+                      </label>
+                      <select
+                        value={company}
+                        onChange={(e) => setCompany(e.target.value)}
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 10,
+                          fontSize: 14,
+                          outline: 'none',
+                          transition: 'all 0.2s ease',
+                          background: 'white'
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                      >
+                        {['Amazon', 'Microsoft', 'Google', 'TCS', 'Adobe', 'Meta'].map(c => <option key={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        Location
+                      </label>
+                      <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="Bangalore, Remote"
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 10,
+                          fontSize: 14,
+                          outline: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Title <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
                     <input
                       type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Amazon SDE-1 Interview Experience"
                       required
-                      value={newRole}
-                      onChange={(e) => setNewRole(e.target.value)}
-                      placeholder="e.g. SDE-1, MTS-2"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-205 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-indigo-500 focus:bg-white"
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        transition: 'all 0.2s ease'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700 tracking-tight uppercase">Rounds</label>
-                    <input
-                      type="text"
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        Role <span style={{ color: '#dc2626' }}>*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={role}
+                        onChange={(e) => setRole(e.target.value)}
+                        placeholder="SDE-1"
+                        required
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 10,
+                          fontSize: 14,
+                          outline: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        Rounds
+                      </label>
+                      <input
+                        type="text"
+                        value={rounds}
+                        onChange={(e) => setRounds(e.target.value)}
+                        placeholder="3 Rounds"
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 10,
+                          fontSize: 14,
+                          outline: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                        Difficulty
+                      </label>
+                      <select
+                        value={difficulty}
+                        onChange={(e) => setDifficulty(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: 10,
+                          fontSize: 14,
+                          outline: 'none',
+                          transition: 'all 0.2s ease',
+                          background: 'white'
+                        }}
+                        onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                        onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
+                      >
+                        <option>Easy</option>
+                        <option>Medium</option>
+                        <option>Hard</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <label style={{ fontSize: 13, fontWeight: 600, color: '#334155', display: 'block', marginBottom: 4 }}>
+                      Description <span style={{ color: '#dc2626' }}>*</span>
+                    </label>
+                    <textarea
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={5}
+                      placeholder="Share your interview experience in detail..."
                       required
-                      value={newRounds}
-                      onChange={(e) => setNewRounds(e.target.value)}
-                      placeholder="e.g. 3 Rounds, 4 Rounds"
-                      className="w-full p-2.5 bg-slate-50 border border-slate-205 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-indigo-500 focus:bg-white"
+                      style={{
+                        width: '100%',
+                        padding: '10px 14px',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: 10,
+                        fontSize: 14,
+                        outline: 'none',
+                        resize: 'vertical',
+                        transition: 'all 0.2s ease',
+                        fontFamily: 'Inter, system-ui, sans-serif'
+                      }}
+                      onFocus={(e) => { e.target.style.borderColor = '#4f46e5'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)'; }}
+                      onBlur={(e) => { e.target.style.borderColor = '#e2e8f0'; e.target.style.boxShadow = 'none'; }}
                     />
                   </div>
-
-                  <div className="space-y-1">
-                    <label className="block text-[11px] font-bold text-slate-700 tracking-tight uppercase">Difficulty</label>
-                    <select
-                      value={newDifficulty}
-                      onChange={(e) => setNewDifficulty(e.target.value)}
-                      className="w-full p-2.5 bg-slate-50 border border-slate-205 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-indigo-500 focus:bg-white font-semibold"
-                    >
-                      <option value="Easy">Easy</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Hard">Hard</option>
-                    </select>
-                  </div>
                 </div>
 
-                {/* Description Textarea */}
-                <div className="space-y-1">
-                  <label className="block text-[11px] font-bold text-slate-700 tracking-tight uppercase">Full Description / Learnings</label>
-                  <textarea
-                    rows={4}
-                    required
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    placeholder="Provide details on types of algorithmic rounds, coding questions asked, system design constraints, and team match processes..."
-                    className="w-full p-2.5 bg-slate-50 border border-slate-205 rounded-xl text-xs text-slate-800 font-sans focus:outline-none focus:border-indigo-500 focus:bg-white leading-relaxed resize-none"
-                  />
-                </div>
-
-                {/* CTA Action button */}
+                {/* Submit Button */}
                 <button
                   type="submit"
-                  className="w-full py-3.5 bg-indigo-650 hover:bg-indigo-705 text-white rounded-xl text-xs font-extrabold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                  style={{
+                    width: '100%',
+                    padding: '14px',
+                    background: '#4f46e5',
+                    color: 'white',
+                    borderRadius: 10,
+                    border: 'none',
+                    fontSize: 14,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 12px rgba(79,70,229,0.3)'
+                  }}
+                  onMouseEnter={(e) => { e.target.style.background = '#4338ca'; e.target.style.transform = 'scale(1.02)'; e.target.style.boxShadow = '0 6px 16px rgba(79,70,229,0.4)'; }}
+                  onMouseLeave={(e) => { e.target.style.background = '#4f46e5'; e.target.style.transform = 'scale(1)'; e.target.style.boxShadow = '0 4px 12px rgba(79,70,229,0.3)'; }}
+                  onMouseDown={(e) => { e.target.style.transform = 'scale(0.95)'; }}
+                  onMouseUp={(e) => { e.target.style.transform = 'scale(1.02)'; }}
                 >
-                  <Send className="h-3.5 w-3.5 text-white" />
-                  <span>Submit Interview Experience</span>
+                  <Send size={16} /> Submit Experience
                 </button>
-
               </form>
-
             </motion.div>
-
           </div>
         )}
       </AnimatePresence>
 
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }

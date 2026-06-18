@@ -32,7 +32,6 @@ import ExperienceHubTab from "./ExperienceHubTab";
 import ProgressCenterTab from "./ProgressCenterTab";
 import BookmarksTab from "./BookmarksTab";
 import ProfileTab from "./ProfileTab";
-import SettingsTab from "./SettingsTab";
 import SkillGapTab from "./SkillGapTab";
 
 export default function Dashboard({ user: initialUser, onUserLoaded, onLogout }) {
@@ -129,17 +128,17 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
     { id: "skill_gap", label: "Skill Gap", icon: Sparkles },
     { id: "bookmarks", label: "Bookmarks", icon: Bookmark },
     { id: "profile", label: "Profile", icon: User },
-    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   return (
     <div id="placementpilot_scaffold_shell"
       className="relative min-h-screen bg-gradient-to-br from-slate-50 via-violet-50/30 to-blue-50/30 text-slate-800 flex font-sans w-full overflow-hidden">
-      <div className="absolute top-20 left-40 w-72 h-72 bg-violet-500/10 blur-[120px] rounded-full"></div>
+      <div className="pointer-events-none absolute top-20 left-40 w-72 h-72 bg-violet-500/10 blur-[120px] rounded-full"></div>
 
-      <div className="absolute bottom-10 right-10 w-80 h-80 bg-blue-500/10 blur-[120px] rounded-full"></div>
-      {/* LEFT SIDEBAR - Desktop Mode */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white/70 backdrop-blur-xl border-r border-white/40 shadow-xl shadow-violet-500/5 shrink-0 sticky top-0 h-screen z-30 justify-between p-6">
+      <div className="pointer-events-none absolute bottom-10 right-10 w-80 h-80 bg-blue-500/10 blur-[120px] rounded-full"></div>
+
+      {/* LEFT SIDEBAR - Desktop Mode - Changed to fixed positioning */}
+      <aside className="hidden lg:flex flex-col w-64 bg-white/70 backdrop-blur-xl border-r border-white/40 shadow-xl shadow-violet-500/5 shrink-0 fixed top-0 left-0 h-screen z-30 justify-between p-6">
         <div className="space-y-6">
 
           {/* Brand Identity / Logo */}
@@ -150,9 +149,6 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
             <div>
               <span className="font-extrabold text-base tracking-tight text-slate-900 block font-display">
                 PlacementPilot AI
-              </span>
-              <span className="text-[10px] text-slate-400 font-bold block leading-none font-mono tracking-wider">
-                SDE PREPARATION
               </span>
             </div>
           </div>
@@ -262,8 +258,8 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
         )}
       </AnimatePresence>
 
-      {/* MAIN CONTAINER AREA */}
-      <main className="flex-1 min-w-0 pt-16 lg:pt-0 bg-[#f8fafc] min-h-screen">
+      {/* MAIN CONTAINER AREA - Added margin-left to account for fixed sidebar */}
+      <main className="flex-1 min-w-0 pt-16 lg:pt-0 bg-[#f8fafc] min-h-screen lg:ml-64">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
 
           {/* HEADER ROW - EXACTLY MATCHING SECOND SCREENSHOT */}
@@ -355,4 +351,3 @@ export default function Dashboard({ user: initialUser, onUserLoaded, onLogout })
     </div>
   );
 }
-
