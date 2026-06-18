@@ -8,19 +8,33 @@ export async function apiRequest(endpoint, options = {}) {
     ...(options.headers || {}),
   };
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
+  let response;
+  try {
+    response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      headers,
+    });
+  } catch (networkError) {
     throw new Error(
-      errorData.error ||
-      errorData.message ||
-      "An error occurred during transaction",
+      networkError?.message || "Unable to reach the server right now.",
     );
   }
 
-  return response.json();
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const error = new Error(
+      errorData.error ||
+        errorData.message ||
+        "An error occurred during transaction",
+    );
+    error.status = response.status;
+    error.details = errorData;
+    throw error;
+  }
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return response.json().catch(() => null);
 }

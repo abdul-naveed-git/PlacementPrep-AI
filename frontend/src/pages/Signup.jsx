@@ -16,6 +16,12 @@ import {
   Fingerprint,
 } from "lucide-react";
 import { apiRequest } from "../lib/api";
+import {
+  getFirstZodErrorMessage,
+  loginSchema,
+  signupEmailSchema,
+  signupVerificationSchema,
+} from "../lib/validation";
 
 import { useLocation, useNavigate } from "react-router-dom";
 
@@ -40,10 +46,15 @@ export default function Signup({ onLoginSuccess }) {
 
   const handleRequestOtp = async (e) => {
     e.preventDefault();
-    if (!email || !email.includes("@")) {
-      setErrorMsg("Please enter a valid email address.");
+
+    const parsed = signupEmailSchema.safeParse({ email });
+    if (!parsed.success) {
+      setErrorMsg(
+        getFirstZodErrorMessage(parsed.error, "Please enter a valid email address."),
+      );
       return;
     }
+
     setIsLoading(true);
     setErrorMsg(null);
     setSuccessInfo(null);
@@ -65,16 +76,18 @@ export default function Signup({ onLoginSuccess }) {
 
   const handleFinalSignUp = async (e) => {
     e.preventDefault();
-    if (!otp || otp.length !== 6) {
-      setErrorMsg("Please enter a valid 6-digit verification code.");
-      return;
-    }
-    if (!password) {
-      setErrorMsg("Password initialization is required.");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setErrorMsg("Passwords do not match!");
+
+    const parsed = signupVerificationSchema.safeParse({
+      email,
+      otp,
+      password,
+      confirmPassword,
+    });
+
+    if (!parsed.success) {
+      setErrorMsg(
+        getFirstZodErrorMessage(parsed.error, "Please check your signup details."),
+      );
       return;
     }
 
@@ -92,9 +105,7 @@ export default function Signup({ onLoginSuccess }) {
 
       navigate("/dashboard");
     } catch (err) {
-      setErrorMsg(
-        err.message || "Invalid validation parameters or expired OTP.",
-      );
+      setErrorMsg(err.message || "Invalid validation parameters or expired OTP.");
     } finally {
       setIsLoading(false);
     }
@@ -102,12 +113,12 @@ export default function Signup({ onLoginSuccess }) {
 
   const handleProductionLogin = async (e) => {
     e.preventDefault();
-    if (!email || !email.includes("@")) {
-      setErrorMsg("Please enter a valid email address.");
-      return;
-    }
-    if (!password) {
-      setErrorMsg("Please enter your account password.");
+
+    const parsed = loginSchema.safeParse({ email, password });
+    if (!parsed.success) {
+      setErrorMsg(
+        getFirstZodErrorMessage(parsed.error, "Please check your login details."),
+      );
       return;
     }
     setIsLoading(true);

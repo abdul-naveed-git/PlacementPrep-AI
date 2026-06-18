@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const validateRequest = require("../middleware/validateRequest");
+const { authRequestSchemas } = require("../validation/schemas");
 const {
   Register,
   Verify,
@@ -8,10 +10,22 @@ const {
   verifyResetOtp,
   resetPassword,
 } = require("../controller/authController");
-router.post("/register", Register);
-router.post("/verify", Verify);
-router.post("/login", login);
-router.post("/forgot-password", forgotPassword);
-router.post("/verify-reset-otp", verifyResetOtp);
-router.post("/reset-password", resetPassword);
+router.post("/register", validateRequest(authRequestSchemas.register), Register);
+router.post("/verify", validateRequest(authRequestSchemas.verify), Verify);
+router.post("/login", validateRequest(authRequestSchemas.login), login);
+router.post(
+  "/forgot-password",
+  validateRequest(authRequestSchemas.forgotPassword),
+  forgotPassword,
+);
+router.post(
+  "/verify-reset-otp",
+  validateRequest(authRequestSchemas.verifyResetOtp),
+  verifyResetOtp,
+);
+router.post(
+  "/reset-password",
+  validateRequest(authRequestSchemas.resetPassword),
+  resetPassword,
+);
 module.exports = router;

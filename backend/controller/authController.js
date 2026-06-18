@@ -20,7 +20,7 @@ exports.Register = async (req, res) => {
         .json({ error: "An account with this email already exists." });
     }
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(otp);
+    //console.log(otp);
     await sendOTPEmail(email, otp);
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
     let record = await OTP.findOne({ email });

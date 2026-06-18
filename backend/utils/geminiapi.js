@@ -6,7 +6,9 @@ const ai = new GoogleGenAI({
 
 const getModelFallbacks = () => {
   const primaryModel = process.env.GEMINI_MODEL || "gemini-2.5-flash";
-  const fallbackModels = (process.env.GEMINI_FALLBACK_MODELS || "gemini-2.5-flash-lite")
+  const fallbackModels = (
+    process.env.GEMINI_FALLBACK_MODELS || "gemini-2.5-flash-lite"
+  )
     .split(",")
     .map((model) => model.trim())
     .filter(Boolean);

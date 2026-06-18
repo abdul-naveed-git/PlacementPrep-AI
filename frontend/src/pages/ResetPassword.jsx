@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { apiRequest } from "../lib/api";
+import { getFirstZodErrorMessage, resetPasswordSchema } from "../lib/validation";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
@@ -20,16 +21,33 @@ export default function ResetPassword() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
   const email = location.state?.email;
 
   const handleConfirm = async (e) => {
     e.preventDefault();
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    if (!email) {
+      setError("Please restart password recovery first.");
+      navigate("/forgot-password");
       return;
     }
+
+    const parsed = resetPasswordSchema.safeParse({
+      email,
+      password,
+      confirmPassword,
+    });
+    if (!parsed.success) {
+      setError(
+        getFirstZodErrorMessage(parsed.error, "Please check your new password."),
+      );
+      return;
+    }
+
+    setIsLoading(true);
+    setError("");
     try {
       await apiRequest("/api/auth/reset-password", {
         method: "POST",
@@ -40,9 +58,12 @@ export default function ResetPassword() {
         }),
       });
     } catch (err) {
-      console.log(err);
+      setError(err.message || "Failed to reset password.");
+      setIsLoading(false);
+      return;
     }
 
+    setIsLoading(false);
     navigate("/login");
   };
 
@@ -239,6 +260,7 @@ export default function ResetPassword() {
 
             <button
               type="submit"
+              disabled={isLoading}
               className="
                 w-full
                 py-3.5
@@ -254,7 +276,7 @@ export default function ResetPassword() {
                 mt-2
               "
             >
-              Confirm Password
+              {isLoading ? "Updating..." : "Confirm Password"}
             </button>
           </form>
         </div>
